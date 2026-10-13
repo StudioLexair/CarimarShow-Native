@@ -1,6 +1,6 @@
 import { validAge } from "./storage-policy.mjs";
 import { state } from "./core-state.mjs";
-import { keyOf, esc, kind } from "./core-model.mjs";
+import { keyOf, esc, kind, moveWithinType } from "./core-model.mjs";
 import { $, toast } from "./ui-dom.mjs";
 import { icon } from "./ui-icons.mjs";
 import { localPut } from "./storage-local.mjs";
@@ -134,12 +134,8 @@ export function expirePersonalMetadata() {
 }
 
 export function reorderList(key, delta) {
-  const i = state.list.findIndex((m) => keyOf(m) === key),
-    next = [...state.list],
-    j = i + delta;
-  if (i < 0 || j < 0 || j >= next.length) return false;
-  [next[i], next[j]] = [next[j], next[i]];
-  if (!localPut("cs_list_v1", next)) return false;
+  const next = moveWithinType(state.list, key, delta);
+  if (next === state.list || !localPut("cs_list_v1", next)) return false;
   state.list = next;
   return true;
 }

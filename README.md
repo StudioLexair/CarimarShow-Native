@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.1.0
+# CarimarShow Native · 2.1.1
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -129,3 +129,7 @@ El proxy mantiene la credencial solo en Vercel, usa rutas/parámetros permitidos
 El workflow **QA Web and Android 16** comprueba assets reales offline en WebView API 36 y el Intent externo del tráiler. Ese test intercepta el Intent: **no demuestra reproducción de YouTube ni envío por WhatsApp**. Su resultado debe revisarse en Actions antes de una entrega.
 
 **Hosting comercial:** el plan actual confirmado es Vercel Hobby. Sus condiciones lo limitan a uso personal no comercial (https://vercel.com/docs/plans/hobby). La autorización TMDB no sustituye los términos de hosting: antes de operar comercialmente, cambiar a un plan/hosting compatible por decisión del titular. No se ha contratado ni activado un plan de pago.
+
+## Continuación 2.1.1
+
+[Mejoras de integración](docs/MEJORAS-2.1.1.md): orden dentro del grupo visible de Mi Lista, eliminación inmediata en rutas de películas/series, preferencias compatibles, caché con etiquetas/miniaturas/eliminación individual y errores parciales de Inicio aislados. Sin cambios al plan de Vercel ni servicios contratados.

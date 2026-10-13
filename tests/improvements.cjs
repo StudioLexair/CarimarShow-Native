@@ -85,14 +85,26 @@ const BASE = process.env.BASE || "http://localhost:8083";
   console.log(
     "PASS order: persistent dedupe, groups/years, two contacts in order, encoded message, no deletion",
   );
+  const otherMovie = seed.catalog.find(
+    (m) => m.media_type === "movie" && m.id !== selected[0].id,
+  );
+  await p.evaluate(
+    async ({ selected, otherMovie }) => {
+      const { state } = await import("./modules/core-state.mjs");
+      state.list = [...selected, otherMovie];
+      localStorage.setItem("cs_list_v1", JSON.stringify(state.list));
+      const { listPage } = await import("./modules/views-list.mjs");
+      listPage();
+    },
+    { selected, otherMovie },
+  );
   await p.locator("[data-menu]").first().click();
   await p.locator("#moveLater").click();
-  assert.equal(
-    await p.evaluate(
-      () => JSON.parse(localStorage.getItem("cs_list_v1"))[1].media_type,
-    ),
-    "movie",
+  const moved = await p.evaluate(() =>
+    JSON.parse(localStorage.getItem("cs_list_v1")),
   );
+  assert.equal(moved[2].id, selected[0].id);
+  assert.equal(moved[1].media_type, "tv");
   await p.selectOption("#listSort", "title");
   await p.reload();
   await p.locator("#listSort").waitFor();

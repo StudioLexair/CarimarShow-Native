@@ -31,6 +31,8 @@ export function profilePage() {
       return;
     for (const k of [
       "cs_list_v1",
+      "cs_list_sort_v1",
+      "cs_list_tab_v1",
       "cs_follow_v2",
       "cs_history_v2",
       "cs_recent_v2",
@@ -40,6 +42,7 @@ export function profilePage() {
     for (const s of ["downloads", "pinnedImages", "api", "images"])
       await dbClear(s);
     state.list = [];
+    state.listTab = "movie";
     state.follows = [];
     state.history = [];
     state.recents = [];

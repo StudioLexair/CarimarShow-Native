@@ -25,20 +25,15 @@ export async function getDetail(type, id) {
 }
 
 export async function getPerson(id) {
+  const creditsPromise = api(`person/${id}/combined_credits`).catch((e) => ({
+    cast: [],
+    crew: [],
+    _offline: true,
+    _unavailable: true,
+    _error: e.message,
+  }));
   const p = await api(`person/${id}`);
   p.media_type = "person";
   remember([p]);
-  let credits;
-  try {
-    credits = await api(`person/${id}/combined_credits`);
-  } catch (e) {
-    credits = {
-      cast: [],
-      crew: [],
-      _offline: true,
-      _unavailable: true,
-      _error: e.message,
-    };
-  }
-  return { person: p, credits };
+  return { person: p, credits: await creditsPromise };
 }

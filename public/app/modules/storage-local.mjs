@@ -17,3 +17,19 @@ export function localPut(k, value) {
     return false;
   }
 }
+
+// Accept the unquoted preferences written by 2.1.0 as well as current JSON.
+export function readChoice(key, choices, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    let value;
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      value = raw;
+    }
+    return choices.includes(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}

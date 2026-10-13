@@ -1,4 +1,4 @@
-import { readLocal } from "./storage-local.mjs";
+import { readLocal, readChoice } from "./storage-local.mjs";
 export const state = {
   list: readLocal("cs_list_v1", []),
   follows: readLocal("cs_follow_v2", []),
@@ -20,7 +20,7 @@ export const state = {
   searchType: "multi",
   heroIndex: 0,
   installPrompt: null,
-  listTab: "movie",
+  listTab: readChoice("cs_list_tab_v1", ["movie", "tv"], "movie"),
 };
 
 for (const pair of [

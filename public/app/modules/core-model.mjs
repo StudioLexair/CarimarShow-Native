@@ -61,3 +61,31 @@ export function statusName(s) {
     "No informado"
   );
 }
+
+// Movement is scoped to the visible movie/TV group, not an adjacent hidden item.
+export function moveWithinType(items, key, direction) {
+  const index = items.findIndex((item) => keyOf(item) === key);
+  if (index < 0 || ![-1, 1].includes(direction)) return items;
+  const type = kind(items[index]);
+  let target = index + direction;
+  while (target >= 0 && target < items.length && kind(items[target]) !== type)
+    target += direction;
+  if (target < 0 || target >= items.length) return items;
+  const next = [...items];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+}
+
+export function sortSelection(items, mode = "manual") {
+  if (mode === "title")
+    return [...items].sort((a, b) =>
+      title(a).localeCompare(title(b), "es", { sensitivity: "base" }),
+    );
+  if (mode === "year")
+    return [...items].sort((a, b) =>
+      (b.release_date || b.first_air_date || "").localeCompare(
+        a.release_date || a.first_air_date || "",
+      ),
+    );
+  return [...items];
+}

@@ -1,0 +1,7 @@
+PASS grouped reorder skips hidden series; edge action disabled; delete refreshes /list/movie
+PASS series tab route and preference preserved; delete refreshes /list/tv
+PASS sort preference migration: unquoted 2.1.0 and new JSON
+PASS meaningful cache labels, actual thumbnail, individual deletion; list/download/pinned image preserved
+PASS injected single-feed failure keeps the other real feed and displays retry, not a false empty
+PASS retry restores home; no JS errors or mobile overflow
+PASS restricted storage read degrades safely to default sort

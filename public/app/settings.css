@@ -567,3 +567,31 @@ body.is-settings {
   padding: 10px;
   max-width: 100%;
 }
+
+.cache-entries .cache-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cache-entry > div {
+  flex: 1;
+  min-width: 0;
+}
+.cache-entry strong {
+  overflow-wrap: anywhere;
+}
+.cache-thumbnail {
+  width: 54px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #102736;
+  flex-shrink: 0;
+}
+.cache-entry .plain-icon {
+  flex-shrink: 0;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

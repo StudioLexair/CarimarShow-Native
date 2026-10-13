@@ -1,10 +1,11 @@
+import { urls } from "./ui-images.mjs";
 import { state } from "./core-state.mjs";
 import { BUSINESS, DEVELOPER, BASE } from "./core-config.mjs";
-import { esc, kind } from "./core-model.mjs";
+import { esc, kind, title } from "./core-model.mjs";
 import { $, toast } from "./ui-dom.mjs";
 import { icon } from "./ui-icons.mjs";
 import { setView, head, menuRow } from "./ui-components.mjs";
-import { cacheStats, dbClear } from "./storage-cache.mjs";
+import { cacheStats, dbClear, dbDelete } from "./storage-cache.mjs";
 import { copyText, install } from "./services-platform.mjs";
 export const formatBytes = (n) =>
   n < 1024 * 1024
@@ -63,6 +64,45 @@ export async function storageInfo() {
   if (target.isConnected)
     target.textContent = `Caché automática: ${stats.api.count} consultas y ${stats.images.count} imágenes, ${formatBytes(logical)} de contenido estimado.${physical}`;
 }
+function cacheLabel(row) {
+  if (row.store === "images")
+    return "Imagen guardada · " + String(row.key).split("/").pop();
+  const query = new URLSearchParams(String(row.key)),
+    path = query.get("path") || "";
+  const data = row.value || {};
+  if (data.title || data.name) return title(data);
+  const names = {
+    "trending/all/week": "Tendencias de la semana",
+    "trending/all/day": "Tendencias de hoy",
+    "movie/now_playing": "Estrenos en cartelera",
+    "movie/popular": "Películas populares",
+    "tv/popular": "Series populares",
+    "person/popular": "Personas populares",
+    "genre/movie/list": "Géneros de películas",
+    "genre/tv/list": "Géneros de series",
+  };
+  let label = names[path];
+  if (!label && path.startsWith("search/"))
+    label = "Búsqueda · " + (query.get("query") || "Sin texto");
+  if (!label && path.endsWith("/combined_credits"))
+    label = "Filmografía · Persona " + path.split("/")[1];
+  if (!label && path.endsWith("/videos"))
+    label =
+      "Tráileres · " +
+      (path.startsWith("tv/") ? "Serie " : "Película ") +
+      path.split("/")[1];
+  if (!label && path.startsWith("discover/"))
+    label =
+      "Categoría · " +
+      (path.startsWith("discover/tv") ? "Series" : "Películas");
+  return (
+    (label || "Consulta · " + path) +
+    (query.get("page") ? " · Página " + query.get("page") : "")
+  );
+}
+function cacheRow(row, index) {
+  return `<article class="cache-entry">${row.store === "images" ? `<img class="cache-thumbnail" data-cache-image="${index}" alt="Vista previa de imagen guardada">` : ""}<div><strong>${esc(cacheLabel(row))}</strong><small>${formatBytes(row.bytes)} · Guardado ${new Date(row.savedAt).toLocaleDateString("es-ES")}</small><small>Caduca ${new Date(row.expiresAt).toLocaleDateString("es-ES")}</small></div><button class="plain-icon" data-cache-delete="${index}" aria-label="Eliminar ${esc(cacheLabel(row))}">${icon("trash")}</button></article>`;
+}
 export async function cacheView(type, rev = state.routeRevision) {
   const stats = await cacheStats(),
     stores =
@@ -76,7 +116,39 @@ export async function cacheView(type, rev = state.routeRevision) {
   );
   if (rev !== state.routeRevision) return;
   setView(
-    `${head(type === "data" ? "Datos en caché" : type === "images" ? "Imágenes en caché" : "Administración de datos", "#settings")}<section class="panel"><h2>${rows.length} elementos automáticos</h2><p>${formatBytes(rows.reduce((n, r) => n + r.bytes, 0))} de contenido estimado. El almacenamiento real incluye índices y otros archivos. Esta limpieza no afecta Mi Lista, perfil, historial, descargas ni imágenes incluidas en el instalador.</p><button class="secondary" id="clearSelectedCache">Limpiar ${type === "data" ? "metadatos" : type === "images" ? "imágenes" : "toda la caché automática"}</button><p id="storageInfo"></p></section><div class="cache-entries">${rows.length ? rows.map((r, i) => `<article><strong>${type === "images" ? "Imagen guardada" : "Consulta guardada"} ${i + 1}</strong><small>${formatBytes(r.bytes)} · Guardado ${new Date(r.savedAt).toLocaleDateString("es-ES")}</small><small>Caduca ${new Date(r.expiresAt).toLocaleDateString("es-ES")}</small></article>`).join("") : '<p class="muted">No hay elementos en esta caché.</p>'}</div><p class="muted tiny">Caducidad: caché automática 30 días; fichas e imágenes explícitas 150 días. Límites automáticos: 250 consultas / 12 MiB y 100 imágenes / 30 MiB. Descargas: hasta 100 fichas / 8 MiB de metadatos y 400 imágenes / 80 MiB. El dispositivo puede imponer una cuota menor.</p><a class="secondary" href="#downloads">Gestionar descargas explícitas</a>`,
+    `${head(type === "data" ? "Datos en caché" : type === "images" ? "Imágenes en caché" : "Administración de datos", "#settings")}<section class="panel"><h2>${rows.length} elementos automáticos</h2><p>${formatBytes(rows.reduce((n, r) => n + r.bytes, 0))} de contenido estimado. El almacenamiento real incluye índices y otros archivos. Esta limpieza no afecta Mi Lista, perfil, historial, descargas ni imágenes incluidas en el instalador.</p><button class="secondary" id="clearSelectedCache">Limpiar ${type === "data" ? "metadatos" : type === "images" ? "imágenes" : "toda la caché automática"}</button><p id="storageInfo"></p></section><div class="cache-entries">${rows.length ? rows.map(cacheRow).join("") : '<p class="muted">No hay elementos en esta caché.</p>'}</div><p class="muted tiny">Caducidad: caché automática 30 días; fichas e imágenes explícitas 150 días. Límites automáticos: 250 consultas / 12 MiB y 100 imágenes / 30 MiB. Descargas: hasta 100 fichas / 8 MiB de metadatos y 400 imágenes / 80 MiB. El dispositivo puede imponer una cuota menor.</p><a class="secondary" href="#downloads">Gestionar descargas explícitas</a>`,
+  );
+  document.querySelectorAll("[data-cache-image]").forEach((img) => {
+    const row = rows[Number(img.dataset.cacheImage)];
+    if (row.value instanceof Blob) {
+      const url = URL.createObjectURL(row.value);
+      urls.add(url);
+      img.src = url;
+    }
+  });
+  document.querySelectorAll("[data-cache-delete]").forEach(
+    (button) =>
+      (button.onclick = async () => {
+        const row = rows[Number(button.dataset.cacheDelete)];
+        if (
+          !row ||
+          !confirm(
+            "¿Eliminar " +
+              cacheLabel(row) +
+              "? Tu lista y descargas se conservan.",
+          )
+        )
+          return;
+        button.disabled = true;
+        const ok = await dbDelete(row.store, row.key);
+        toast(
+          ok
+            ? "Elemento de caché eliminado."
+            : "No se pudo eliminar el elemento.",
+        );
+        if (ok) await cacheView(type, rev);
+        else if (button.isConnected) button.disabled = false;
+      }),
   );
   $("#clearSelectedCache").onclick = async () => {
     if (await clearAutomatic(stores)) await cacheView(type, rev);

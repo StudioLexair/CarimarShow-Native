@@ -287,3 +287,22 @@ test("arquitectura: imports locales existentes y sin ciclos", () => {
   }
   for (const f of files) visit(f);
 });
+
+import {
+  moveWithinType,
+  sortSelection,
+} from "../public/app/modules/core-model.mjs";
+test("organización: reordenar salta el tipo oculto sin mutar la selección original", () => {
+  const a = { id: 1, title: "Z", media_type: "movie" },
+    tv = { id: 9, name: "TV", media_type: "tv" },
+    b = { id: 2, title: "A", media_type: "movie" };
+  const input = [a, tv, b];
+  assert.deepEqual(moveWithinType(input, "movie:1", 1), [b, tv, a]);
+  assert.deepEqual(input, [a, tv, b]);
+  assert.equal(moveWithinType(input, "movie:1", -1), input);
+  assert.equal(moveWithinType(input, "tv:9", 1), input);
+  assert.equal(moveWithinType(input, "movie:99", 1), input);
+  assert.equal(moveWithinType(input, "movie:1", 0), input);
+  assert.deepEqual(sortSelection([a, b], "title"), [b, a]);
+  assert.deepEqual(sortSelection([a, b]), [a, b]);
+});
