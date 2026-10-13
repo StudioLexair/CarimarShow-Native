@@ -1,6 +1,6 @@
 // El token vive en el entorno de Vercel, nunca en la web ni el APK.
 const ORIGINS = new Set(['https://carimarshow-native.vercel.app', 'https://appassets.androidplatform.net', 'https://carimarshow.local']);
-const ALLOWED = /^(trending\/(all|movie|tv)\/(day|week)|movie\/(popular|top_rated|now_playing|\d+)|tv\/(popular|top_rated|on_the_air|\d+)|search\/(multi|movie|tv|person)|person\/\d+(\/combined_credits)?)$/;
+const ALLOWED = /^(trending\/(all|movie|tv)\/(day|week)|movie\/(popular|top_rated|now_playing|upcoming|\d+(\/(similar|recommendations|videos))?)|tv\/(popular|top_rated|on_the_air|\d+(\/(similar|recommendations|videos))?)|search\/(multi|movie|tv|person)|person\/(popular|\d+(\/combined_credits)?)|genre\/(movie|tv)\/list|discover\/(movie|tv))$/;
 module.exports = async (req, res) => {
   // CORS depende del origen: evitar que la CDN reutilice respuestas sin sus cabeceras.
   res.setHeader('Cache-Control', 'private, no-store');
@@ -20,10 +20,12 @@ module.exports = async (req, res) => {
   const path = String(req.query.path || '');
   if (!ALLOWED.test(path)) return res.status(400).json({ error: 'Consulta no permitida' });
   if (!process.env.TMDB_READ_TOKEN) return res.status(503).json({ error: 'TMDB no configurado' });
-  const params = new URLSearchParams({ language: 'es-ES', include_adult: 'false' });
-  for (const k of ['query', 'page', 'append_to_response']) {
+  const params = new URLSearchParams({ language: 'es-ES', include_adult: 'false', include_video_language: 'es,en,null' });
+  if (['es-ES','en-US'].includes(req.query.language)) params.set('language', req.query.language);
+  for (const k of ['query', 'page', 'append_to_response', 'with_genres']) {
     if (req.query[k]) params.set(k, String(req.query[k]).slice(0, 300));
   }
+  if (params.has('with_genres') && !/^\d+(,\d+)*$/.test(params.get('with_genres'))) return res.status(400).json({ error: 'Género inválido' });
   if (params.has('page') && !/^[1-9]\d{0,2}$/.test(params.get('page'))) return res.status(400).json({ error: 'Página inválida' });
   if (params.has('append_to_response') && !/^(credits,videos|videos,credits)$/.test(params.get('append_to_response'))) return res.status(400).json({ error: 'Expansión no permitida' });
   try {

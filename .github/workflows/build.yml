@@ -38,8 +38,8 @@ jobs:
       - name: Verify signature and bundled interface
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/app/build/outputs/apk/release/app-release.apk
-          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/index.html"
-          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/catalog-snapshot.json"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/index.html"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/catalog-snapshot.json"
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts

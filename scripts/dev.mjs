@@ -14,7 +14,7 @@ http.createServer(async(req,res)=>{
    req.query=Object.fromEntries(url.searchParams);res.status=code=>{res.statusCode=code;return res};res.json=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));return res};await api(req,res);return;
  }
  try{
-  let p=decodeURIComponent(url.pathname);if(p==='/'||p==='/app'||p==='/app/')p='/index.html';
+  let p=decodeURIComponent(url.pathname);if(p==='/')p='/index.html'; else if(p==='/app'||p==='/app/')p='/app/index.html';
   const file=path.resolve(root,'.'+p);if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end()}
   const bytes=await fs.readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(bytes);
  }catch{res.writeHead(404);res.end('No encontrado')}

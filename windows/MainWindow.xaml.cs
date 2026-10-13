@@ -27,7 +27,7 @@ public partial class MainWindow : Window {
                 if (uri.Scheme == "https" && (uri.Host == Host || uri.Host == "carimarshow-native.vercel.app" || uri.Host == "image.tmdb.org")) return;
                 e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(), 403, "Blocked", "Content-Type: text/plain");
             };
-            core.Navigate($"https://{Host}/index.html#home");
+            core.Navigate($"https://{Host}/app/index.html#home");
         } catch (Exception ex) {
             MessageBox.Show("No se pudo iniciar CarimarShow. Instala Microsoft Edge WebView2 Runtime o vuelve a ejecutar el instalador completo.\n\n"+ex.Message, "CarimarShow", MessageBoxButton.OK, MessageBoxImage.Error);
             Close();

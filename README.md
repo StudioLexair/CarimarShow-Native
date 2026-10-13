@@ -1,84 +1,104 @@
-# CarimarShow Native
+# CarimarShow Native · 2.0.0
 
-Aplicación híbrida con **archivos web incluidos en el instalador**, no un acceso directo a una web remota. Desarrollada por Studio Lexair.
+Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
-- **Android 7+**: Kotlin + WebViewAssetLoader, APK firmado y AAB.
-- **Windows 10/11 x64**: .NET 8 WPF + WebView2, instalador con .NET autocontenido y el runtime WebView2 offline incluido. El instalador requiere permisos de administrador. No tiene certificado comercial de firma de Windows: SmartScreen puede advertir.
-- **Web / iPhone / macOS / Linux**: PWA en https://carimarshow-native.vercel.app. En iPhone: Safari → Compartir → Añadir a pantalla de inicio. No hay instaladores nativos de iOS/macOS/Linux en esta versión.
+## Dos páginas, un mismo proyecto
 
-## Qué funciona
+- **Principal:** https://carimarshow-native.vercel.app/ — presentación, descargas y contacto.
+- **Aplicación:** https://carimarshow-native.vercel.app/app/ — catálogo completo y perfil local.
 
-Catálogo real de TMDB, búsqueda de películas/series/personas, fichas sin palabras clave, tráiler externo de YouTube cuando existe, reparto enlazado a filmografía, lista personal sin registro, gráfica de la lista, borrado de caché, contacto del negocio y créditos del desarrollador.
+La app instalable inicia en `/app/`, nunca en la presentación. Ambos sitios se despliegan juntos en Vercel. Los instaladores Android/Windows incluyen todos los archivos locales y abren `/app/index.html#home`.
 
-## Offline, sin promesas falsas
+## Pantallas y funciones
 
-El paquete contiene **50 títulos, sus fichas, 10 perfiles con filmografía y 65 imágenes** obtenidos en la fecha de generación indicada en Ajustes. No incluye el catálogo entero de TMDB, vídeos ni películas.
+1. **Arranque:** arte cinematográfico decorativo, monograma CS y progreso por fases reales de carga (catálogo, almacenamiento, consultas).
+2. **Inicio:** destacados reales de John Wick, Dune: Parte dos y Deadpool & Wolverine; carrusel por indicadores, tendencias y estrenos actuales de TMDB, filas horizontales y lista personal.
+3. **Explorar:** búsqueda de películas/series/personas, filtro por tipo, búsquedas recientes eliminables, accesos a categorías y tendencias del día.
+4. **Ficha:** información y votos reales, guardar, compartir, descarga de ficha, pestañas de descripción/reparto/tráileres/similares y actores enlazados.
+5. **Categorías:** géneros reales de TMDB y resultados de discover paginados; tarjetas con imágenes del catálogo.
+6. **Actor:** biografía, fecha/lugar de nacimiento, seguir, filmografía con créditos reales y reparto navegable.
+7. **Mi Lista:** películas/series separadas; opciones para quitar, compartir y guardar fichas offline.
+8. **Perfil:** nombre y foto editables, estadísticas calculadas, personas seguidas, historial, descargas, ajustes, ayuda y restablecimiento de datos.
 
-La interfaz, el catálogo incluido y tu lista se abren sin internet desde el primer arranque del APK/EXE. Las consultas son **network-first**, con respaldo en IndexedDB o en el catálogo incluido. Se guardan hasta 250 consultas y 100 imágenes adicionales. Las filmografías incluidas pueden tener pósteres que requieren una primera descarga. Tráileres, WhatsApp y sitios externos necesitan conexión.
+**«Ver tráiler» abre YouTube** cuando existe un vídeo válido de TMDB. Si no hay vídeo, la ficha lo informa. Sin cuentas no existe «Cerrar sesión»: se muestra «Restablecer mis datos». «Actores seguidos» no son seguidores sociales inventados. La hora, batería y cobertura las proporciona el dispositivo; no están dibujadas en el HTML.
 
-Cuando cambien los archivos del shell web, cambiar también la revisión `SHELL` en `public/sw.js` para que las instalaciones PWA reciban la actualización.
+## Plataformas
 
-La PWA necesita una primera visita con internet y que el service worker termine de descargar los archivos. Datos locales y lista son por dispositivo; no hay sincronización ni copia en la nube. No se elimina la lista al borrar caché.
+- **Android 7+:** Kotlin + WebViewAssetLoader, APK firmado y AAB; firma estable propia. Package ID `com.studiolexair.carimarshow`.
+- **Windows 10/11 x64:** .NET 8 WPF + WebView2. Instalador incluye .NET autocontenido y el instalador standalone offline WebView2, cuya firma Microsoft se verifica en CI. Requiere administrador. Sin certificado comercial Windows; SmartScreen puede advertir.
+- **iPhone/macOS/Linux:** PWA en navegador compatible; Safari → Compartir → Añadir a pantalla de inicio en iPhone. No hay instaladores nativos de esas tres plataformas en esta entrega.
+
+## Offline real y límites
+
+El paquete incluye **50 títulos con fichas, 10 personas con filmografía y 76 imágenes**, además del arte decorativo del arranque. No es todo TMDB y no contiene películas ni capítulos.
+
+- La interfaz y el contenido incluido abren desde el primer arranque Android/Windows, sin descargar una web remota.
+- Consultas **network-first**, con respaldo en IndexedDB y snapshot.
+- Caché automática acotada: 250 consultas y 100 imágenes adicionales.
+- Descarga explícita de una ficha: guarda información, pósteres, backdrop y hasta ocho retratos del reparto en almacenes separados. Solo se informa completada si se han guardado los archivos. No descarga vídeo.
+- Borrar caché automática **conserva descargas, lista, perfil e historial**. Eliminar una descarga conserva Mi Lista. Restablecer datos sí elimina todo lo personal.
+- La PWA requiere primera visita online y que termine de instalarse el service worker. Las imágenes de filmografías no incluidas necesitan una primera descarga.
+- Datos por dispositivo: no se suben ni sincronizan. El sistema/navegador puede borrar almacenamiento; desinstalar puede borrar tus datos.
+
+La versión nueva preserva la lista local `cs_list_v1`. Si otra pestaña antigua bloquea la actualización de IndexedDB, cerrarla y volver a abrir la app. No cambiar la clave Android para una actualización.
 
 ## Desarrollo
 
+Node 20+, frontend sin dependencias externas. Credenciales únicamente en variables de entorno.
+
 ```sh
-# Node 20+, sin dependencias frontend
 export TMDB_READ_TOKEN='tu token privado'
-npm run dev                 # 0.0.0.0:8080
+npm run dev          # 0.0.0.0:8080; / y /app/
 npm run check
-npm run snapshot            # renueva datos y pósteres incluidos
+npm run snapshot     # renueva contenido incluido desde TMDB
 ```
 
-`public/config.js` contiene únicamente la URL pública del proxy. En los contenedores locales usa el proxy HTTPS de Vercel; la web usa `/api/tmdb`. **Nunca poner tokens en public/, config.js, APK o EXE.** El proxy permite únicamente rutas concretas de lectura TMDB, valida parámetros y admite los orígenes locales Android/Windows. CORS no es autenticación ni protección contra bots; antes de tráfico elevado se debe activar rate limiting/WAF en el alojamiento y revisar cuotas.
+Sin token local, el servidor de desarrollo consulta el proxy público de producción. El token nunca va a `public/`, config.js, el APK o el EXE.
 
-## Android
+**API permitida:** tendencias, búsqueda, fichas/credits/videos/similares, personas/filmografías, géneros y discover. Los parámetros se validan y `include_adult=false` se fija para las consultas que lo soportan. CORS admite los orígenes nativos y producción. Respuestas `private, no-store` evitan que la CDN mezcle cabeceras CORS entre orígenes; el cliente conserva los datos en IndexedDB. CORS no es autenticación ni control de cuotas: configurar WAF/rate limits antes de tráfico importante.
 
-JDK 17, Android SDK 35, Gradle 8.10.2 (instalado en Actions con setup-gradle).
+El archivo `public/app/sw.js` controla solo `/app/`. Cambiar `SHELL` al modificar los assets; al activar una revisión elimina únicamente caches antiguas del shell CarimarShow. La página principal no utiliza el service worker de la app.
+
+## Compilación
+
+Android: JDK 17, SDK 35, Gradle 8.10.2. `preBuild` copia `public/` a assets. El contenedor no tiene JavaScriptInterface, acceso HTTP claro, aceptación de SSL inválido ni permisos sensibles. Soporta selección de archivo voluntaria para el avatar y abre enlaces externos fuera del shell.
 
 ```sh
 cd android
 gradle assembleDebug
-# Release usa las variables de firma documentadas abajo
+# Firma de release mediante las variables documentadas en CI
 gradle assembleRelease bundleRelease
 ```
 
-`preBuild` copia `public/` a assets. El shell usa `https://appassets.androidplatform.net/`. No hay JavaScriptInterface, permisos sensibles, HTTP claro ni aceptación de errores SSL. Solo se cargan recursos locales, el proxy y el CDN de TMDB. Los enlaces externos se abren fuera del contenedor. Android necesita que el WebView del sistema esté disponible; no se descarga la interfaz desde internet.
-
-**Nueva identidad de paquete y firma:** `com.studiolexair.carimarshow`. Es una app independiente del proyecto anterior. No se puede prometer que sustituya una APK anterior con otro package ID o certificado. Conservar siempre la misma clave y aumentar versionCode para actualizaciones.
-
-## Windows
+Windows:
 
 ```powershell
 dotnet publish windows/CarimarShow.csproj -c Release -r win-x64 --self-contained true -o artifacts/windows
-# Descargar WebView2 Standalone Installer x64 a artifacts/ y compilar windows/installer.iss con Inno Setup 6.
+# Descargar WebView2 Standalone x64 a artifacts/ y compilar windows/installer.iss con Inno Setup 6.
 ```
 
-Actions descarga el instalador **standalone**, comprueba su firma Microsoft y lo incluye. No es el bootstrapper que descarga el motor durante la instalación. Los archivos se sirven desde `https://carimarshow.local/`, mapeado a la carpeta web junto al EXE. WebView2 guarda datos en `%LOCALAPPDATA%/StudioLexair/CarimarShow/WebView2`. El instalador completo puede ser grande por incluir los runtimes. El comportamiento final debe probarse en Windows real limpio y Android físico antes de distribuir a clientes.
+Datos Windows en `%LOCALAPPDATA%/StudioLexair/CarimarShow/WebView2`. El instalador es grande por incluir runtimes. Android depende del WebView disponible en el sistema.
 
-## CI y despliegue
+## CI y seguridad
 
-- `.github/workflows/site.yml`: push a main → Vercel producción.
-- `.github/workflows/build.yml`: workflow_dispatch o tag `v*` → APK/AAB + instalador Windows. Con tag, publica en Releases.
-- [Descargas](https://github.com/StudioLexair/CarimarShow-Native/releases)
+- `site.yml`: push a main → despliega juntos `api/` y `public/` a Vercel.
+- `build.yml`: workflow_dispatch o tag `v*` → APK/AAB firmados + Windows. Con tag publica en Releases. Verifica firma APK y presencia de `assets/app/index.html` y snapshot.
+- [Última release](https://github.com/StudioLexair/CarimarShow-Native/releases/latest)
 
-Los secretos del repositorio anterior **no se heredan** al crear uno nuevo. Este repositorio utiliza:
+Secrets Actions: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_ORG_ID`, `TMDB_READ_TOKEN`. El token TMDB también está en el entorno encrypted del servidor Vercel. No incluir `.vercel/` en `public/`.
 
-| Secret | Uso |
-|---|---|
-| ANDROID_KEYSTORE_BASE64 | PKCS12 de firma de esta app, base64 |
-| ANDROID_KEYSTORE_PASSWORD | Contraseña de almacén |
-| ANDROID_KEY_ALIAS | Alias de firma |
-| ANDROID_KEY_PASSWORD | Contraseña de la clave |
-| VERCEL_TOKEN | Despliegues CI |
-| VERCEL_PROJECT_ID | ID del proyecto nuevo |
-| VERCEL_ORG_ID | ID real de la cuenta/team del proyecto nuevo |
-| TMDB_READ_TOKEN | Renovación opcional del snapshot en CI |
+Rotar los PAT/tokens de acceso compartidos en el chat y sustituirlos en los secretos/entornos. **Conservar la clave Android de firma:** es la identidad para futuras actualizaciones, no un token de acceso. Respaldo entregado por separado, nunca en el repositorio público.
 
-Además, `TMDB_READ_TOKEN` debe estar como variable **encrypted** del servidor Vercel en producción. El despliegue sube el proyecto raíz con `api/` y `public/`, no una carpeta estática que excluya la API. No se debe incluir `.vercel/` en `public/`.
+## Pruebas
 
-## Seguridad y entrega
+Herramientas opcionales: `npm install --no-save playwright`, `npx playwright install --with-deps chromium`. Con servidor dev abierto:
 
-Los PAT y tokens compartidos en el chat deben rotarse y sustituirse en los secretos/entornos después de la entrega. La clave Android es nueva, privada y estable; **no rotarla al rotar los tokens de acceso**, pues se necesita para actualizar instalaciones. Su respaldo se entrega por separado y nunca está en el repositorio público.
+```sh
+BASE=http://localhost:8080 node tests/browser.cjs
+BASE=http://localhost:8080 node tests/downloads.cjs
+node tests/native-origins.cjs # sobre producción
+```
 
-Código con todos los derechos reservados. Datos e imágenes sujetos a los términos de TMDB y titulares correspondientes. Debe revisarse la licencia comercial de TMDB si el uso del negocio lo requiere. Este producto utiliza la API de TMDB, pero no está respaldado ni certificado por TMDB.
+`TEST_OUTPUT` controla la carpeta de capturas. `UPDATE_PREVIEW=1` permite actualizar la captura real de portada. Ver `tests/RESULTADOS.md`. Las simulaciones de origen WebView en Chromium no sustituyen una instalación física: probar APK en Android y EXE en Windows limpio antes de distribución al negocio.
+
+Código reservado a Studio Lexair/Yolexis. Datos e imágenes sujetos a sus titulares y términos de TMDB; revisar licencia comercial según el uso del negocio. Este producto utiliza la API de TMDB, pero no está respaldado ni certificado por TMDB.

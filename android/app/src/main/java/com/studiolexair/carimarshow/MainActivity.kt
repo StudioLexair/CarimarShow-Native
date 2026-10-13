@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream
 /** Interfaz empaquetada localmente. Sin puentes JavaScript hacia código nativo. */
 class MainActivity : Activity() {
     private lateinit var web: WebView
+    private var fileCallback: ValueCallback<Array<Uri>>? = null
     private val localHost = "appassets.androidplatform.net"
     private val remoteHosts = setOf("carimarshow-native.vercel.app", "image.tmdb.org")
 
@@ -21,7 +22,7 @@ class MainActivity : Activity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         web = WebView(this)
-        web.setBackgroundColor(Color.rgb(16, 21, 29))
+        web.setBackgroundColor(Color.rgb(3, 21, 34))
         setContentView(web)
         // Android 15 fuerza edge-to-edge: aplicar los insets a la superficie nativa.
         web.setOnApplyWindowInsetsListener { v, insets ->
@@ -60,6 +61,18 @@ class MainActivity : Activity() {
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) { handler.cancel() }
         }
         web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: WebChromeClient.FileChooserParams): Boolean {
+                fileCallback?.onReceiveValue(null)
+                fileCallback = callback
+                return try {
+                    startActivityForResult(params.createIntent().addCategory(Intent.CATEGORY_OPENABLE), 110)
+                    true
+                } catch (_: Exception) {
+                    fileCallback?.onReceiveValue(null)
+                    fileCallback = null
+                    false
+                }
+            }
             // target=_blank: abrir enlaces externos en el navegador, nunca reemplazar el shell local.
             override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: android.os.Message): Boolean {
                 if (!isUserGesture) return false
@@ -81,7 +94,7 @@ class MainActivity : Activity() {
                 return true
             }
         }
-        if (state == null || web.restoreState(state) == null) web.loadUrl("https://$localHost/index.html#home")
+        if (state == null || web.restoreState(state) == null) web.loadUrl("https://$localHost/app/index.html#home")
     }
     private fun external(uri: Uri) {
         if (uri.scheme !in setOf("https", "http", "tel", "mailto")) return
@@ -90,6 +103,14 @@ class MainActivity : Activity() {
     }
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() { if (web.canGoBack()) web.goBack() else super.onBackPressed() }
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 110) {
+            fileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+            fileCallback = null
+        }
+    }
     override fun onSaveInstanceState(out: Bundle) { web.saveState(out); super.onSaveInstanceState(out) }
-    override fun onDestroy() { web.destroy(); super.onDestroy() }
+    override fun onDestroy() { fileCallback?.onReceiveValue(null); fileCallback = null; web.destroy(); super.onDestroy() }
 }
