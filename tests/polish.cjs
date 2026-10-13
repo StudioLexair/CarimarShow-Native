@@ -59,7 +59,9 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await page.locator("#listSort").waitFor();
   assert.equal(await page.inputValue("#listSort"), "title");
   console.log("PASS sort preference migration: unquoted 2.1.0 and new JSON");
-  await page.evaluate(async () => {
+  // Finish any earlier thumbnail fetch before setting up isolated cache records.
+  await page.waitForLoadState("networkidle");
+  const imageKey = await page.evaluate(async () => {
     const { state } = await import("./modules/core-state.mjs"),
       db = await import("./modules/storage-cache.mjs");
     await db.dbClear("api");
@@ -84,6 +86,7 @@ const BASE = process.env.BASE || "http://localhost:8083";
       images: [key],
       savedAt: new Date().toISOString(),
     });
+    return key;
   });
   const personalBefore = await page.evaluate(() =>
     localStorage.getItem("cs_list_v1"),
@@ -100,15 +103,28 @@ const BASE = process.env.BASE || "http://localhost:8083";
     () => document.querySelectorAll(".cache-entry").length === 0,
   );
   await page.goto(BASE + "/app/#cache/images");
-  await page.locator("[data-cache-image]").waitFor();
+  const expectedLabel = "Imagen guardada · " + imageKey.split("/").pop();
+  const imageRow = page
+    .locator(".cache-entry")
+    .filter({ hasText: expectedLabel });
+  await imageRow.locator("[data-cache-image]").waitFor();
   await page.waitForFunction(
-    () => document.querySelector("[data-cache-image]").naturalWidth > 0,
+    (label) =>
+      [...document.querySelectorAll(".cache-entry")].some(
+        (row) =>
+          row.textContent.includes(label) &&
+          row.querySelector("img")?.naturalWidth > 0,
+      ),
+    expectedLabel,
   );
   page.once("dialog", (d) => d.accept());
-  await page.locator("[data-cache-delete]").click();
-  await page.waitForFunction(
-    () => document.querySelectorAll(".cache-entry").length === 0,
-  );
+  await imageRow.locator("[data-cache-delete]").click();
+  await imageRow.waitFor({ state: "detached" });
+  const removed = await page.evaluate(async (key) => {
+    const db = await import("./modules/storage-cache.mjs");
+    return await db.dbGet("images", key);
+  }, imageKey);
+  assert.equal(removed, null);
   const preserved = await page.evaluate(async () => {
     const db = await import("./modules/storage-cache.mjs");
     return {

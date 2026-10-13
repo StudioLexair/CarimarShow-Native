@@ -1,6 +1,12 @@
 name: QA Web and Android 16
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Validation scope (native assets unchanged when selecting web)
+        type: choice
+        default: all
+        options: [all, web]
   push:
     branches: [main]
 permissions:
@@ -27,6 +33,7 @@ jobs:
           node tests/improvements.cjs
           node tests/polish.cjs
   android-16:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'web' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
