@@ -1,0 +1,14 @@
+node_modules/
+.vercel/
+.env*
+!.env.example
+.gradle/
+**/build/
+**/bin/
+**/obj/
+*.keystore
+*.jks
+*.apk
+*.aab
+*.exe
+artifacts/

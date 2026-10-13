@@ -1,0 +1,23 @@
+name: Deploy web to Vercel
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['public/**', 'api/**', 'vercel.json', 'package.json', '.github/workflows/site.yml']
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm run check
+      - name: Deploy production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: npx --yes vercel@48.10.0 deploy --prod --yes --token "$VERCEL_TOKEN"

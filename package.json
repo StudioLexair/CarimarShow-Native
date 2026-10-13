@@ -1,0 +1,6 @@
+{
+  "name": "carimarshow-native", "version": "1.0.0", "private": true,
+  "description": "CarimarShow — catálogo web, Android Kotlin y Windows",
+  "scripts": { "dev": "node scripts/dev.mjs", "check": "node --check public/app.js && node --check api/tmdb.js", "snapshot": "node scripts/snapshot.mjs" },
+  "engines": { "node": ">=20" }
+}
