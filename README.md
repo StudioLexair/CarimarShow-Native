@@ -4,8 +4,8 @@ Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente
 
 ## Dos páginas, un mismo proyecto
 
-- **Principal:** https://carimarshow-native.vercel.app/ — presentación, descargas y contacto.
-- **Aplicación:** https://carimarshow-native.vercel.app/app/ — catálogo completo y perfil local.
+- **Principal:** https://carimarshow.vercel.app/ — presentación, descargas y contacto.
+- **Aplicación:** https://carimarshow.vercel.app/app/ — catálogo completo y perfil local.
 
 La app instalable inicia en `/app/`, nunca en la presentación. Ambos sitios se despliegan juntos en Vercel. Los instaladores Android/Windows incluyen todos los archivos locales y abren `/app/index.html#home`.
 
@@ -137,3 +137,7 @@ El workflow **QA Web and Android 16** comprueba assets reales offline en WebView
 ## Perfil y géneros 2.2.0
 
 [Resumen](docs/MEJORAS-2.2.0.md): Perfil/Ayuda rediseñados; selección películas + series o un solo tipo en portada y dentro de cada género; taxonomías oficiales por plataforma; arranque que evita shells antiguos sin borrar personales.
+
+## Dominio principal (13 de octubre de 2026)
+
+El proyecto Vercel actual se llama `carimarshow` y conserva su ID original `prj_nRw7mvaLAhU6zSPUllGVpf9SIqjX`. Dominio principal: https://carimarshow.vercel.app/. `carimarshow-native.vercel.app` sigue siendo un alias del **mismo proyecto** para las aplicaciones Android/Windows ya publicadas y los perfiles web guardados en ese origen. No es otro despliegue antiguo. El almacenamiento del navegador está separado por origen: los datos del dominio con `-native` no se trasladan automáticamente al dominio corto; se pueden seguir usando en el alias de compatibilidad. El repositorio sigue siendo `StudioLexair/CarimarShow-Native`.

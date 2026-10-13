@@ -366,3 +366,14 @@ test("géneros: resultados mixtos intercalados conservan tipo aunque compartan I
     [1, 1, 2],
   );
 });
+
+
+test("proxy: dominio corto y nativas permitidos, origen ajeno rechazado", async () => {
+  const handler = require("../api/tmdb.js");
+  for (const origin of ["https://carimarshow.vercel.app", "https://carimarshow-native.vercel.app", "https://appassets.androidplatform.net", "https://carimarshow.local", "https://ajeno.example"]) {
+    const res = { headers: {}, setHeader(k,v) { this.headers[k]=v; }, status(n) { this.code=n; return this; }, end() {}, json(data) { this.data=data; return this; } };
+    await handler({method: "OPTIONS", headers: {origin}}, res);
+    assert.equal(res.code, origin === "https://ajeno.example" ? 403 : 204);
+    assert.equal(res.headers["Access-Control-Allow-Origin"], origin === "https://ajeno.example" ? undefined : origin);
+  }
+});

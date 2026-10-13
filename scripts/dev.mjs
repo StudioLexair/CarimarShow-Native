@@ -9,7 +9,7 @@ http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
  if(url.pathname==='/api/tmdb'){
    if (!process.env.TMDB_READ_TOKEN) {
-     try { const upstream=await fetch('https://carimarshow-native.vercel.app/api/tmdb'+url.search,{signal:AbortSignal.timeout(10000)}); res.writeHead(upstream.status,{'Content-Type':'application/json'}); return res.end(await upstream.text()); } catch { res.writeHead(502); return res.end(JSON.stringify({error:'Sin conexión al proxy'})); }
+     try { const upstream=await fetch('https://carimarshow.vercel.app/api/tmdb'+url.search,{signal:AbortSignal.timeout(10000)}); res.writeHead(upstream.status,{'Content-Type':'application/json'}); return res.end(await upstream.text()); } catch { res.writeHead(502); return res.end(JSON.stringify({error:'Sin conexión al proxy'})); }
    }
    req.query=Object.fromEntries(url.searchParams);res.status=code=>{res.statusCode=code;return res};res.json=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));return res};await api(req,res);return;
  }

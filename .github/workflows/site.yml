@@ -20,4 +20,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        run: npx --yes vercel@48.10.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+        run: |
+          DEPLOYMENT="$(npx --yes vercel@48.10.0 deploy --prod --yes --token "$VERCEL_TOKEN")"
+          npx --yes vercel@48.10.0 alias set "$DEPLOYMENT" carimarshow.vercel.app --scope "$VERCEL_ORG_ID" --token "$VERCEL_TOKEN"
+          npx --yes vercel@48.10.0 alias set "$DEPLOYMENT" carimarshow-native.vercel.app --scope "$VERCEL_ORG_ID" --token "$VERCEL_TOKEN"
