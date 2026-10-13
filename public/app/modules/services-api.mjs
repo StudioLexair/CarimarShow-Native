@@ -1,5 +1,5 @@
 import { state } from "./core-state.mjs";
-import { cacheRecord, dbPut } from "./storage-cache.mjs";
+import { cacheRecord, dbPut, dbDelete } from "./storage-cache.mjs";
 import { seedFallback, localSearch } from "./services-fallback.mjs";
 import { validateResponse } from "./core-validation.mjs";
 export class DataAccessError extends Error {
@@ -71,7 +71,7 @@ async function request(path, params = {}) {
     }
   }
   const cached = await cacheRecord("api", key);
-  if (cached)
+  if (cached && validateResponse(path, cached.value))
     return {
       ...cached.value,
       _offline: true,
@@ -79,17 +79,32 @@ async function request(path, params = {}) {
       _sourceDate: new Date(cached.savedAt).toISOString(),
       _fallbackReason: failure?.status || "connection",
     };
+  if (cached) await dbDelete("api", key);
   const fallback = path.startsWith("search/")
     ? await localSearch(path, params)
     : seedFallback(path, params);
-  if (fallback)
+  if (fallback) {
+    const date =
+      fallback._contentSavedAt ||
+      fallback._sourceDate ||
+      state.seed.generatedAt;
     return {
       ...fallback,
+      ...(fallback.results && !path.endsWith("/videos")
+        ? {
+            results: fallback.results.map((m) => ({
+              ...m,
+              _contentSavedAt: m._contentSavedAt || date,
+            })),
+          }
+        : {}),
+      _contentSavedAt: date,
       _offline: true,
       _source: fallback._source || "included",
-      _sourceDate: fallback._sourceDate || state.seed.generatedAt,
+      _sourceDate: fallback._sourceDate || date,
       _fallbackReason: failure?.status || "connection",
     };
+  }
   throw failure instanceof DataAccessError
     ? failure
     : new DataAccessError(

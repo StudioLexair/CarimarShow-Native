@@ -12,7 +12,10 @@ import {
   remember,
 } from "./modules/services-library.mjs";
 import { itemMenu } from "./modules/views-list.mjs";
-import { downloadItem } from "./modules/services-downloads.mjs";
+import {
+  downloadItem,
+  hasActiveDownloads,
+} from "./modules/services-downloads.mjs";
 import { share } from "./modules/services-platform.mjs";
 import { state } from "./modules/core-state.mjs";
 import { icons } from "./modules/ui-icons.mjs";
@@ -137,6 +140,7 @@ window.addEventListener("downloads-changed", () => {
 window.addEventListener("cache-warning", (e) => toast(e.detail));
 
 async function maintainStorage() {
+  if (hasActiveDownloads()) return;
   await pruneCaches();
   state.downloadMap.clear();
   for (const d of await dbAll("downloads"))

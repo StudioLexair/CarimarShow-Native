@@ -37,9 +37,10 @@ jobs:
         run: gradle assembleRelease bundleRelease --no-daemon
       - name: Verify signature and bundled interface
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
           unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/index.html"
           unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/catalog-snapshot.json"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/modules/services-orders.mjs"
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts
@@ -53,6 +54,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          draft: true
           files: artifacts/*
   windows:
     runs-on: windows-latest
@@ -87,6 +89,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          draft: true
           files: |
             artifacts/CarimarShow-Windows-x64-Setup.exe
             artifacts/SHA256-Windows.txt

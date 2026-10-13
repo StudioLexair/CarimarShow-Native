@@ -199,6 +199,41 @@ const BASE = process.env.BASE || "http://localhost:8083";
   console.log(
     "PASS injected failures: valid zero ≠ invalid response/local fallback",
   );
+  const refreshed = await p.evaluate(async (item) => {
+    const { state } = await import("./modules/core-state.mjs");
+    state.list = [
+      { id: item.id, media_type: item.media_type, _contentExpired: true },
+    ];
+    const { getDetail } = await import("./modules/services-details.mjs");
+    await getDetail(item.media_type, String(item.id));
+    return {
+      expired: state.list[0]._contentExpired,
+      title: state.list[0].title || state.list[0].name,
+    };
+  }, selected[0]);
+  assert.equal(refreshed.expired, false);
+  assert.ok(refreshed.title);
+  console.log(
+    "PASS expired selection keeps ID and is refreshed with real network metadata",
+  );
+  await p.evaluate(async () => {
+    const s = await import("./modules/storage-cache.mjs");
+    await s.dbClear("api");
+  });
+  await ctx.setOffline(true);
+  const fallbackDate = await p.evaluate(async () => {
+    const { api } = await import("./modules/services-api.mjs"),
+      { state } = await import("./modules/core-state.mjs");
+    const d = await api("movie/693134", {
+      append_to_response: "credits,videos",
+    });
+    return { date: d._contentSavedAt, original: state.seed.generatedAt };
+  });
+  assert.equal(fallbackDate.date, fallbackDate.original);
+  console.log(
+    "PASS included fallback preserves original content date (no TTL reset)",
+  );
+  await ctx.setOffline(false);
   assert.deepEqual(errors, []);
   console.log("PASS no JS errors");
   await ctx.close();
@@ -257,6 +292,40 @@ const BASE = process.env.BASE || "http://localhost:8083";
     "PASS IDB v2→v3: preserve dated download/pinned image; discard undated automatic cache",
   );
   await old.close();
+  const expiredContext = await browser.newContext(),
+    expiredPage = await expiredContext.newPage();
+  await expiredPage.goto(BASE + "/app/");
+  await expiredPage.locator(".hero").waitFor();
+  await expiredPage.evaluate(async () => await navigator.serviceWorker.ready);
+  await expiredPage.reload();
+  await expiredPage.locator(".hero").waitFor();
+  await expiredPage.evaluate(async () => {
+    const c = await caches.open("carimarshow-content-v2.1.0"),
+      r = await c.match("/app/catalog-snapshot.json"),
+      seed = await r.json();
+    seed.generatedAt = new Date(Date.now() - 151 * 86400000).toISOString();
+    await c.put(
+      "/app/catalog-snapshot.json",
+      new Response(JSON.stringify(seed)),
+    );
+    const db = await import("./modules/storage-cache.mjs");
+    await db.dbClear("api");
+  });
+  await expiredContext.setOffline(true);
+  await expiredPage.reload();
+  await expiredPage.locator("[data-retry]").waitFor();
+  assert.equal(await expiredPage.locator(".hero").count(), 0);
+  const staleImages = await expiredPage.evaluate(async () => {
+    const names = await caches.keys();
+    return names.includes("carimarshow-content-v2.1.0")
+      ? (await (await caches.open("carimarshow-content-v2.1.0")).keys()).length
+      : 0;
+  });
+  assert.equal(staleImages, 0);
+  console.log(
+    "PASS SW: included content older than 150 days physically removed from CacheStorage; offline expired data not displayed",
+  );
+  await expiredContext.close();
   await browser.close();
 })().catch((e) => {
   console.error(e);

@@ -35,3 +35,20 @@ for (const pair of [
     if (pair[1] === "history") state.history = [];
     if (pair[1] === "recents") state.recents = [];
   }
+
+if (
+  !state.profile ||
+  typeof state.profile !== "object" ||
+  Array.isArray(state.profile)
+)
+  state.profile = { name: "CarimarShow", avatar: "" };
+state.profile.name =
+  typeof state.profile.name === "string"
+    ? state.profile.name.slice(0, 40)
+    : "CarimarShow";
+state.profile.avatar =
+  typeof state.profile.avatar === "string" &&
+  state.profile.avatar.startsWith("data:image/")
+    ? state.profile.avatar
+    : "";
+state.recents = state.recents.filter((q) => typeof q === "string").slice(0, 8);

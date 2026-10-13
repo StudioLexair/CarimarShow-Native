@@ -127,3 +127,5 @@ BASE=http://localhost:8083 node tests/improvements.cjs
 El proxy mantiene la credencial solo en Vercel, usa rutas/parámetros permitidos, tiempos de espera y validación. La regla WAF activa aplica 120 GET/minuto/IP a `/api/tmdb`; contador por región según Vercel. CORS no autentica a los clientes: el catálogo es público, la credencial es privada. No se incorpora una supuesta clave secreta a los APK.
 
 El workflow **QA Web and Android 16** comprueba assets reales offline en WebView API 36 y el Intent externo del tráiler. Ese test intercepta el Intent: **no demuestra reproducción de YouTube ni envío por WhatsApp**. Su resultado debe revisarse en Actions antes de una entrega.
+
+**Hosting comercial:** el plan actual confirmado es Vercel Hobby. Sus condiciones lo limitan a uso personal no comercial (https://vercel.com/docs/plans/hobby). La autorización TMDB no sustituye los términos de hosting: antes de operar comercialmente, cambiar a un plan/hosting compatible por decisión del titular. No se ha contratado ni activado un plan de pago.

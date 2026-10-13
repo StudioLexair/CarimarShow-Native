@@ -6,13 +6,18 @@ import { dbPut, dbGet, dbDelete } from "./storage-cache.mjs";
 
 import { BASE } from "./core-config.mjs";
 import { icon } from "./ui-icons.mjs";
+const activeDownloads = new Set();
+export const hasActiveDownloads = () => activeDownloads.size > 0;
 export async function downloadItem(m) {
   if (!m) return;
   const k = keyOf(m);
+  if (activeDownloads.has(k))
+    return toast("Esta ficha se está guardando. Espera a que termine.");
   if (state.downloadMap.has(k))
     return toast("Esta ficha ya está guardada offline.");
   if (!navigator.onLine)
     return toast("Conéctate para descargar una ficha completa.");
+  activeDownloads.add(k);
   const touched = [];
   toast("Preparando ficha e imágenes…");
   try {
@@ -80,6 +85,8 @@ export async function downloadItem(m) {
       if (![...state.downloadMap.values()].some((d) => d.images.includes(ik)))
         await dbDelete("pinnedImages", ik);
     toast(e.message || "No se pudo completar la descarga.");
+  } finally {
+    activeDownloads.delete(k);
   }
 }
 

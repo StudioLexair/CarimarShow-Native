@@ -21,7 +21,7 @@ export function validateResponse(path, data) {
   )
     return (
       Array.isArray(data.results) &&
-      data.results.every((m) => Number.isInteger(m.id))
+      data.results.every((m) => m && Number.isInteger(m.id))
     );
   if (data.videos && !Array.isArray(data.videos.results)) return false;
   if (data.credits && !Array.isArray(data.credits.cast)) return false;

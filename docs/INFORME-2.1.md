@@ -1,6 +1,6 @@
 # CarimarShow 2.1.0 — informe de mejora
 
-Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. Resultados de publicación/Android se completarán tras Actions.
+Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. Web 2.1 desplegada y probada en producción; primer QA Android 16 y navegador de Actions completado con éxito.
 
 ## 1. Auditoría previa y funciones conservadas
 
@@ -26,13 +26,14 @@ Stack conservado. 30 módulos con separación core/storage/services/ui/views, de
 - Unitarias: **11/11 PASS** (`unit-results.txt`). Incluyen dedupe/agrupación/URL/TTL/LRU/tipo/tráiler/allowlist/método/origen/429/payload/grafo. Datos unitarios son fixtures claramente de prueba, no catálogo simulado de producción.
 - Regresión browser móvil/escritorio: PASS (`qa-browser-2.1.txt`), búsquedas/reparto/fichas, guardar/seguir/editar, categorías/paginación, descargas sobrevivientes a limpieza, lista/ficha offline, sin overflow ni errores JS.
 - Descarga nueva fuera del snapshot: PASS (`qa-downloads-2.1.txt`), The Batman offline/reparto/Blob y eliminación conservando selección.
-- Aserciones nuevas: PASS (`qa-improvements-2.1.txt`): cadena completa de navegación/restauración, mensaje/orden/persistencia, organización, contactos/logos/cifras, IDB TTL/LRU/límite, migración v2→v3.
+- Aserciones nuevas: PASS (`qa-improvements-2.1.txt`): cadena completa de navegación/restauración, mensaje/orden/persistencia, organización, contactos/logos/cifras, IDB TTL/LRU/límite, migración v2→v3, metadatos vencidos renovables sin perder selección, fecha original del fallback y caducidad real de CacheStorage del SW.
 - Fallos inyectados para pruebas: respuesta vacía válida y respuesta inválida; la UI distingue éxito vacío de respaldo local. No son resultados ficticios ofrecidos al usuario.
+- Producción web: regresión PASS sin errores JS ni overflow (`qa-production-browser-2.1.txt`). Orígenes de Android/Windows: API real 200 y búsquedas Tom Hanks, sin aviso de fallback (`qa-native-origins-2.1.txt`); esta prueba Chromium verifica CORS/rutas, no reemplaza un equipo Windows.
 - WAF real: **125 solicitudes a ruta inválida → 120 HTTP 400 + 5 HTTP 429**, sin llamadas TMDB (`waf-verification.json`).
 
 ## 6. Pruebas manuales y plataformas
 
-Recorridos ejecutados en Chromium móvil 390×844 y escritorio 1440 px; no se usan screenshots como sustituto de aserciones. Prueba Android API 36 añadida: APK/assets reales, módulos MIME, arranque sin red, ficha/tráiler externo/pedido/lista. Su resultado final figura en Actions; el Intent se intercepta, no se reproduce vídeo ni se envía WhatsApp. Ninguna prueba en un teléfono físico ni instalación interactiva Windows se presume realizada.
+Recorridos ejecutados en Chromium móvil 390×844 y escritorio 1440 px; no se usan screenshots como sustituto de aserciones. Prueba Android API 36 añadida: APK/assets reales, módulos MIME, arranque sin red, ficha/tráiler externo/pedido/lista. **PASS real en emulador Android 16/API 36**: 1 test, 0 fallos/errores/omitidos, 15,722 s; XML y resumen `qa-android16.xml/txt`. Run https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38426329914. El Intent se intercepta: no se reproduce vídeo ni se envía WhatsApp. Ninguna prueba en un teléfono físico ni instalación interactiva Windows se presume realizada.
 
 ## 7. Caché y persistencia
 
@@ -56,7 +57,7 @@ Avisos/logo autorizados visibles en créditos. El titular declaró autorización
 
 ## 12. Pendientes y límites honestos
 
-Prueba en teléfono físico con YouTube/WhatsApp instalados y no instalados; vídeo reproducible/red real y retorno a app; instalación Windows en equipo limpio; Safari/iPhone real; revisión del acuerdo TMDB y actualización periódica del contenido empaquetado; certificado Windows si se desea eliminar avisos reputacionales. Un enlace válido de TMDB no garantiza que YouTube no retire/restrinja el vídeo. No se presenta hardware ni envío externo no ejecutado como probado.
+Prueba en teléfono físico con YouTube/WhatsApp instalados y no instalados; vídeo reproducible/red real y retorno a app; instalación Windows en equipo limpio; Safari/iPhone real; revisión del acuerdo TMDB y actualización periódica del contenido empaquetado; certificado Windows si se desea eliminar avisos reputacionales. **El plan Vercel actual es Hobby, que sus condiciones reservan para uso personal no comercial: antes del uso comercial elegir un plan/hosting compatible. No se ha autorizado ni realizado una contratación de pago.** Fuente oficial: https://vercel.com/docs/plans/hobby. Un enlace válido de TMDB no garantiza que YouTube no retire/restrinja el vídeo. No se presenta hardware ni envío externo no ejecutado como probado.
 
 ## 13. Comandos y entrega
 

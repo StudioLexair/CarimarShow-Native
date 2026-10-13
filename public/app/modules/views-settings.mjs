@@ -63,7 +63,7 @@ export async function storageInfo() {
   if (target.isConnected)
     target.textContent = `Caché automática: ${stats.api.count} consultas y ${stats.images.count} imágenes, ${formatBytes(logical)} de contenido estimado.${physical}`;
 }
-export async function cacheView(type) {
+export async function cacheView(type, rev = state.routeRevision) {
   const stats = await cacheStats(),
     stores =
       type === "data"
@@ -74,11 +74,12 @@ export async function cacheView(type) {
   const rows = stores.flatMap((s) =>
     stats[s].entries.map((e) => ({ ...e, store: s })),
   );
+  if (rev !== state.routeRevision) return;
   setView(
     `${head(type === "data" ? "Datos en caché" : type === "images" ? "Imágenes en caché" : "Administración de datos", "#settings")}<section class="panel"><h2>${rows.length} elementos automáticos</h2><p>${formatBytes(rows.reduce((n, r) => n + r.bytes, 0))} de contenido estimado. El almacenamiento real incluye índices y otros archivos. Esta limpieza no afecta Mi Lista, perfil, historial, descargas ni imágenes incluidas en el instalador.</p><button class="secondary" id="clearSelectedCache">Limpiar ${type === "data" ? "metadatos" : type === "images" ? "imágenes" : "toda la caché automática"}</button><p id="storageInfo"></p></section><div class="cache-entries">${rows.length ? rows.map((r, i) => `<article><strong>${type === "images" ? "Imagen guardada" : "Consulta guardada"} ${i + 1}</strong><small>${formatBytes(r.bytes)} · Guardado ${new Date(r.savedAt).toLocaleDateString("es-ES")}</small><small>Caduca ${new Date(r.expiresAt).toLocaleDateString("es-ES")}</small></article>`).join("") : '<p class="muted">No hay elementos en esta caché.</p>'}</div><p class="muted tiny">Caducidad: caché automática 30 días; fichas e imágenes explícitas 150 días. Límites automáticos: 250 consultas / 12 MiB y 100 imágenes / 30 MiB. Descargas: hasta 100 fichas / 8 MiB de metadatos y 400 imágenes / 80 MiB. El dispositivo puede imponer una cuota menor.</p><a class="secondary" href="#downloads">Gestionar descargas explícitas</a>`,
   );
   $("#clearSelectedCache").onclick = async () => {
-    if (await clearAutomatic(stores)) await cacheView(type);
+    if (await clearAutomatic(stores)) await cacheView(type, rev);
   };
   await storageInfo();
 }

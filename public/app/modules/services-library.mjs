@@ -8,12 +8,21 @@ export function remember(items) {
   let changed = false;
   for (const m of items || [])
     if (m?.id) {
+      if (
+        !m._contentSavedAt &&
+        state.seed.catalog.some((x) => keyOf(x) === keyOf(m))
+      )
+        m._contentSavedAt = state.seed.generatedAt;
       state.visible.set(keyOf(m), m);
       if (m._source === "network" && !m._offline) {
         for (const field of ["list", "history", "follows"]) {
           const i = state[field].findIndex((x) => keyOf(x) === keyOf(m));
           if (i >= 0) {
-            state[field][i] = { ...state[field][i], ...m };
+            state[field][i] = {
+              ...state[field][i],
+              ...m,
+              _contentExpired: false,
+            };
             changed = true;
           }
         }
@@ -96,7 +105,12 @@ export function expirePersonalMetadata() {
   const clean = (m) =>
     validAge(m._contentSavedAt || state.seed.generatedAt)
       ? m
-      : { id: m.id, media_type: kind(m), _contentExpired: true };
+      : {
+          id: m.id,
+          media_type: kind(m),
+          _contentExpired: true,
+          ...(m.viewedAt ? { viewedAt: m.viewedAt } : {}),
+        };
   for (const [field, key] of [
     ["list", "cs_list_v1"],
     ["history", "cs_history_v2"],

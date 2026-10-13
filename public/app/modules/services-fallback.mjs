@@ -27,7 +27,10 @@ export function seedFallback(path, params) {
   if (state.seed.details[path]) return state.seed.details[path];
   if (state.seed.people[path]) return state.seed.people[path];
   if (/^genre\//.test(path))
-    return state.seed.responses?.[path] || { genres: genres() };
+    return (
+      state.seed.responses?.[path] ||
+      (genres().length ? { genres: genres() } : null)
+    );
   if (/\/videos$/.test(path)) {
     const d = state.seed.details[path.replace("/videos", "")];
     return d?.videos || null;
@@ -63,6 +66,7 @@ export function seedFallback(path, params) {
       total_pages: 1,
     };
   if (/^discover\//.test(path)) {
+    if (!state.seed.catalog.length) return null;
     const type = path.split("/")[1],
       wanted = Number(params.with_genres);
     return {
@@ -81,6 +85,7 @@ export function seedFallback(path, params) {
   if (state.seed.responses?.[path] && Number(params.page || 1) === 1)
     return state.seed.responses[path];
   if (/^(trending|movie\/|tv\/)/.test(path) && !/^\w+\/\d+$/.test(path)) {
+    if (!state.seed.catalog.length) return null;
     if (Number(params.page || 1) > 1) return { results: [], total_pages: 1 };
     const type = path.startsWith("movie/")
       ? "movie"
@@ -104,13 +109,22 @@ export async function localSearch(path, params) {
       const d = r.value,
         path = new URLSearchParams(r.key).get("path") || "",
         t = /^(movie|tv|person)\//.test(path) ? path.split("/")[0] : null;
-      return (d.results || d.cast || [d]).map((m) => ({
-        ...m,
-        media_type:
-          m.media_type ||
-          (path.endsWith("combined_credits") ? null : t) ||
-          undefined,
-      }));
+      if (!d || typeof d !== "object") return [];
+      return (
+        Array.isArray(d.results)
+          ? d.results
+          : Array.isArray(d.cast)
+            ? d.cast
+            : [d]
+      )
+        .filter((m) => m && typeof m === "object")
+        .map((m) => ({
+          ...m,
+          media_type:
+            m.media_type ||
+            (path.endsWith("combined_credits") ? null : t) ||
+            undefined,
+        }));
     })
     .filter((m) => m?.id && (m.title || m.name));
   const people = Object.values(state.seed.people)
