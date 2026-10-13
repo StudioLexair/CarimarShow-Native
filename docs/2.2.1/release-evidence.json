@@ -1,0 +1,59 @@
+{
+  "release_id": 411982683,
+  "assets": [
+    {
+      "name": "CarimarShow-Android.aab",
+      "size": 5722906,
+      "digest": "sha256:161379790db9d39a68882b0340672fa8e27ff82044a46bf56e4ac7502b101e33",
+      "browser_download_url": "https://github.com/StudioLexair/CarimarShow-Native/releases/download/untagged-88b10f7802d4eb8fdcc3/CarimarShow-Android.aab"
+    },
+    {
+      "name": "CarimarShow-Android.apk",
+      "size": 5741059,
+      "digest": "sha256:2213e8663218d895223cbb062a11961d764ff0876d62d7bbff011ae18531e307",
+      "browser_download_url": "https://github.com/StudioLexair/CarimarShow-Native/releases/download/untagged-88b10f7802d4eb8fdcc3/CarimarShow-Android.apk"
+    },
+    {
+      "name": "CarimarShow-Windows-x64-Setup.exe",
+      "size": 269834639,
+      "digest": "sha256:7734f7b53736e65bcb1a493892110271826b3e3e9854d22d53a8a3b3d2d295d5",
+      "browser_download_url": "https://github.com/StudioLexair/CarimarShow-Native/releases/download/untagged-88b10f7802d4eb8fdcc3/CarimarShow-Windows-x64-Setup.exe"
+    },
+    {
+      "name": "SHA256-Android.txt",
+      "size": 180,
+      "digest": "sha256:271c86da97e3ca2079f7ff68a3def8f86e4246074d48b547c8b383788159a618",
+      "browser_download_url": "https://github.com/StudioLexair/CarimarShow-Native/releases/download/untagged-88b10f7802d4eb8fdcc3/SHA256-Android.txt"
+    },
+    {
+      "name": "SHA256-Windows.txt",
+      "size": 101,
+      "digest": "sha256:2cf77ea65a3f0c66d8fb52f2108cee44cff35b2f1ac7ba305c082911f33008ba",
+      "browser_download_url": "https://github.com/StudioLexair/CarimarShow-Native/releases/download/untagged-88b10f7802d4eb8fdcc3/SHA256-Windows.txt"
+    }
+  ],
+  "android_certificate": "1c684c5a0f5f6a7a348bd55c3f2ba9ce9dfc6beec1fdaae68a2a888a178ade2e",
+  "runs": {
+    "Build Android and Windows": {
+      "id": 38446633894,
+      "conclusion": "success",
+      "head_sha": "31d22a634f9bbcb70797d0ce405e966faf57def0",
+      "run_number": 8,
+      "html_url": "https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38446633894"
+    },
+    "Deploy web to Vercel": {
+      "id": 38446633737,
+      "conclusion": "success",
+      "head_sha": "31d22a634f9bbcb70797d0ce405e966faf57def0",
+      "run_number": 15,
+      "html_url": "https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38446633737"
+    },
+    "QA Web and Android 16": {
+      "id": 38446633557,
+      "conclusion": "success",
+      "head_sha": "31d22a634f9bbcb70797d0ce405e966faf57def0",
+      "run_number": 7,
+      "html_url": "https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38446633557"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.studiolexair.carimarshow.OfflineFlowTest" tests="2" failures="0" errors="0" skipped="0" time="17.3" timestamp="2026-10-13T18:28:32" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 16" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="shortDomainProxyWorksInNativeWebView" classname="com.studiolexair.carimarshow.OfflineFlowTest" time="8.017" />
+  <testcase name="bundledOfflineOrderAndExternalTrailer" classname="com.studiolexair.carimarshow.OfflineFlowTest" time="8.245" />
+</testsuite>

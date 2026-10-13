@@ -1,0 +1,25 @@
+[
+  {
+    "url": "https://carimarshow-native.vercel.app/",
+    "status": 404,
+    "redirect": false
+  },
+  {
+    "url": "https://carimarshow-native.vercel.app/app/",
+    "status": 404,
+    "redirect": false
+  },
+  {
+    "url": "https://carimarshow-native.vercel.app/api/tmdb?path=genre/tv/list",
+    "status": 404,
+    "redirect": false
+  },
+  {
+    "url": "https://carimarshow.vercel.app/",
+    "status": 200
+  },
+  {
+    "url": "https://carimarshow.vercel.app/app/",
+    "status": 200
+  }
+]
