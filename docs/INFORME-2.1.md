@@ -1,6 +1,6 @@
 # CarimarShow 2.1.0 — informe de mejora
 
-Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. Web 2.1 desplegada y probada en producción; APK/AAB e instalador Windows compilados. Primer QA Android 16 completado con éxito; segunda ejecución detectó una transición de red del emulador: el driver se refuerza esperando desconexión real antes del arranque. Instaladores mantenidos en borrador hasta terminar esta repetición.
+Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. **Entregado:** web desplegada; APK/AAB firmados e instalador Windows compilados; release v2.1.0 publicada tras el QA final correcto. Una ejecución intermedia detectó una transición asíncrona de red del emulador, no se ocultó: el driver ahora espera la desconexión real antes del arranque y la repetición pasó.
 
 ## 1. Auditoría previa y funciones conservadas
 
@@ -33,7 +33,7 @@ Stack conservado. 30 módulos con separación core/storage/services/ui/views, de
 
 ## 6. Pruebas manuales y plataformas
 
-Recorridos ejecutados en Chromium móvil 390×844 y escritorio 1440 px; no se usan screenshots como sustituto de aserciones. Prueba Android API 36 añadida: APK/assets reales, módulos MIME, arranque sin red, ficha/tráiler externo/pedido/lista. **PASS real en emulador Android 16/API 36**: 1 test, 0 fallos/errores/omitidos, 15,722 s; XML y resumen `qa-android16.xml/txt`. Run https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38426329914. El Intent se intercepta: no se reproduce vídeo ni se envía WhatsApp. Ninguna prueba en un teléfono físico ni instalación interactiva Windows se presume realizada.
+Recorridos ejecutados en Chromium móvil 390×844 y escritorio 1440 px; no se usan screenshots como sustituto de aserciones. Prueba Android API 36 añadida: APK/assets reales, módulos MIME, arranque sin red, ficha/tráiler externo/pedido/lista. **PASS real en emulador Android 16/API 36**: 1 test, 0 fallos/errores/omitidos, 13,487 s; XML y resumen `qa-android16.xml/txt`. Run https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38428405558. El Intent se intercepta: no se reproduce vídeo ni se envía WhatsApp. Ninguna prueba en un teléfono físico ni instalación interactiva Windows se presume realizada.
 
 ## 7. Caché y persistencia
 
@@ -78,4 +78,16 @@ gradle assembleRelease bundleRelease
 dotnet publish windows/CarimarShow.csproj -c Release -r win-x64 --self-contained true
 ```
 
-Ver README para instalación de Playwright y secretos requeridos. Web: `/` presentación y `/app/` app completa. Los instaladores incluyen web local. La publicación y artefactos 2.1.0 se informan únicamente cuando la ejecución real termine.
+Ver README para instalación de Playwright y secretos requeridos. Web: `/` presentación y `/app/` app completa. Los instaladores incluyen web local. ## Publicación y archivos verificados
+
+- Release: https://github.com/StudioLexair/CarimarShow-Native/releases/tag/v2.1.0
+- Web: https://carimarshow-native.vercel.app/app/
+- Tag nativo `v2.1.0`: commit `1b2e669`. Build Android y Windows: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38427608835 — **SUCCESS**.
+- QA final Android 16 y navegador: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38428405558 — **SUCCESS**. 1 test Android, cero fallos/errores/omitidos; 11 unitarias y aserciones web correctas.
+- APK: 5.46 MiB; SHA256 `d9c4b17576fec007f16560303f8b0d4af828add4a6caee66488d3081f527b575`.
+- AAB: 5.45 MiB; SHA256 `3fa168b59d712bc495916fe5d1dad968337d44f5160e834085bebe72366f5a9c`.
+- Windows x64 Setup: 257.32 MiB; SHA256 `7c6c57de4dcb905f4825a6e8ef3d483dab06c9d5619d0a685399f390596a3601`.
+- Certificado Android conservado respecto a 2.0: SHA256 `1c684c5a0f5f6a7a348bd55c3f2ba9ce9dfc6beec1fdaae68a2a888a178ade2e`. VersionCode aumenta de 4 a 5; firma verificada por apksigner en Actions y certificado comparado desde ambos APK.
+- Web incorpora revisión `shell-v2.1.0-r2` para invalidar las copias temporales del shell durante el despliegue de esta mejora. Solo aplica a PWA; wrappers nativos no registran ese SW. Pruebas de expiración y producción correctas.
+
+**Si una PWA que ya estaba abierta muestra la interfaz anterior, ciérrala y vuelve a abrirla después de la actualización.** Primera instalación PWA requiere conexión; Android/Windows llevan los archivos dentro. Los SHA adjuntos de la release permiten verificar la descarga. No se distribuye el almacén de firma ni se cambian contraseñas.

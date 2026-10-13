@@ -1,5 +1,6 @@
-Android 16 API 36, emulador x86_64, APK debug/assets reales.
-Run: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38426329914
-Intents externos interceptados: no reproducción YouTube ni envío WhatsApp.
-{'name': 'com.studiolexair.carimarshow.OfflineFlowTest', 'tests': '1', 'failures': '0', 'errors': '0', 'skipped': '0', 'time': '17.306', 'timestamp': '2026-10-13T16:00:41', 'hostname': 'localhost'}
-TEST {'name': 'bundledOfflineOrderAndExternalTrailer', 'classname': 'com.studiolexair.carimarshow.OfflineFlowTest', 'time': '15.722'}
+Android 16/API 36, emulador x86_64, APK/assets reales offline.
+Run: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38428405558
+Driver espera activeNetwork=null antes de arrancar y navigator.onLine=false; no se fuerza un resultado JavaScript.
+Intent externo YouTube interceptado: no reproducción ni envío WhatsApp.
+Tests: {'name': 'com.studiolexair.carimarshow.OfflineFlowTest', 'tests': '1', 'failures': '0', 'errors': '0', 'skipped': '0', 'time': '15.216', 'timestamp': '2026-10-13T16:15:44', 'hostname': 'localhost'}
+TEST {'name': 'bundledOfflineOrderAndExternalTrailer', 'classname': 'com.studiolexair.carimarshow.OfflineFlowTest', 'time': '13.487'}
