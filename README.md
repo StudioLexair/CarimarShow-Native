@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.1.1
+# CarimarShow Native · 2.2.0
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -133,3 +133,7 @@ El workflow **QA Web and Android 16** comprueba assets reales offline en WebView
 ## Continuación 2.1.1
 
 [Mejoras de integración](docs/MEJORAS-2.1.1.md): orden dentro del grupo visible de Mi Lista, eliminación inmediata en rutas de películas/series, preferencias compatibles, caché con etiquetas/miniaturas/eliminación individual y errores parciales de Inicio aislados. Sin cambios al plan de Vercel ni servicios contratados.
+
+## Perfil y géneros 2.2.0
+
+[Resumen](docs/MEJORAS-2.2.0.md): Perfil/Ayuda rediseñados; selección películas + series o un solo tipo en portada y dentro de cada género; taxonomías oficiales por plataforma; arranque que evita shells antiguos sin borrar personales.

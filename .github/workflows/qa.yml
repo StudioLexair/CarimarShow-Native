@@ -32,6 +32,7 @@ jobs:
           for i in $(seq 1 20); do curl -fsS "$BASE/app/" >/dev/null && break || sleep 1; done
           node tests/improvements.cjs
           node tests/polish.cjs
+          node tests/profile-genres.cjs
   android-16:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'web' }}
     runs-on: ubuntu-latest

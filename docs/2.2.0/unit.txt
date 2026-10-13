@@ -1,0 +1,84 @@
+
+> carimarshow-native@2.2.0 test
+> node --test tests/unit.mjs
+
+TAP version 13
+# Subtest: pedido: deduplicación por tipo/id, película y serie, año y total
+ok 1 - pedido: deduplicación por tipo/id, película y serie, año y total
+  ---
+  duration_ms: 1.402046
+  ...
+# Subtest: pedido: dos WhatsApp propios, orden exacto y codificación reversible
+ok 2 - pedido: dos WhatsApp propios, orden exacto y codificación reversible
+  ---
+  duration_ms: 1.055892
+  ...
+# Subtest: tráiler: solo YouTube, tipo Trailer y clave válida; sin teasers ajenos
+ok 3 - tráiler: solo YouTube, tipo Trailer y clave válida; sin teasers ajenos
+  ---
+  duration_ms: 0.247828
+  ...
+# Subtest: política: 30/150 días, inválidos/futuros y límites declarados
+ok 4 - política: 30/150 días, inválidos/futuros y límites declarados
+  ---
+  duration_ms: 0.525776
+  ...
+# Subtest: LRU: limita tanto elementos como bytes y respeta acceso reciente
+ok 5 - LRU: limita tanto elementos como bytes y respeta acceso reciente
+  ---
+  duration_ms: 0.24097
+  ...
+# Subtest: tipos/modelo: personas no son películas, escapado sin null/undefined
+ok 6 - tipos/modelo: personas no son películas, escapado sin null/undefined
+  ---
+  duration_ms: 0.188381
+  ...
+# Subtest: proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansión arbitraria
+ok 7 - proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansión arbitraria
+  ---
+  duration_ms: 1.822529
+  ...
+# Subtest: validación: cero resultados es éxito; ficha o vídeo de otro ID es error
+ok 8 - validación: cero resultados es éxito; ficha o vídeo de otro ID es error
+  ---
+  duration_ms: 0.382628
+  ...
+# Subtest: rate limiting de instancia: 429, reset y tamaño acotado
+ok 9 - rate limiting de instancia: 429, reset y tamaño acotado
+  ---
+  duration_ms: 0.361456
+  ...
+# Subtest: handler: método, origen, validación, upstream válido y errores sin credencial
+ok 10 - handler: método, origen, validación, upstream válido y errores sin credencial
+  ---
+  duration_ms: 21.549528
+  ...
+# Subtest: arquitectura: imports locales existentes y sin ciclos
+ok 11 - arquitectura: imports locales existentes y sin ciclos
+  ---
+  duration_ms: 1.954393
+  ...
+# Subtest: organización: reordenar salta el tipo oculto sin mutar la selección original
+ok 12 - organización: reordenar salta el tipo oculto sin mutar la selección original
+  ---
+  duration_ms: 6.882408
+  ...
+# Subtest: géneros: correspondencias TMDB para series sin confundir IDs de cine
+ok 13 - géneros: correspondencias TMDB para series sin confundir IDs de cine
+  ---
+  duration_ms: 0.424926
+  ...
+# Subtest: géneros: resultados mixtos intercalados conservan tipo aunque compartan ID
+ok 14 - géneros: resultados mixtos intercalados conservan tipo aunque compartan ID
+  ---
+  duration_ms: 0.230101
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.617008

@@ -306,3 +306,63 @@ test("organización: reordenar salta el tipo oculto sin mutar la selección orig
   assert.deepEqual(sortSelection([a, b], "title"), [b, a]);
   assert.deepEqual(sortSelection([a, b]), [a, b]);
 });
+
+import {
+  mergeGenres,
+  genreSupports,
+  interleaveTitles,
+} from "../public/app/modules/core-genres.mjs";
+test("géneros: correspondencias TMDB para series sin confundir IDs de cine", () => {
+  const groups = mergeGenres(
+    [
+      { id: 28, name: "Acción" },
+      { id: 12, name: "Aventura" },
+      { id: 27, name: "Terror" },
+      { id: 878, name: "Ciencia ficción" },
+      { id: 14, name: "Fantasía" },
+      { id: 35, name: "Comedia" },
+    ],
+    [
+      { id: 10759, name: "Action & Adventure" },
+      { id: 10765, name: "Sci-Fi & Fantasy" },
+      { id: 35, name: "Comedia" },
+      { id: 10762, name: "Kids" },
+    ],
+  );
+  assert.deepEqual(groups.find((g) => g.id === 28).tvIds, [10759]);
+  assert.deepEqual(groups.find((g) => g.id === 12).tvIds, [10759]);
+  assert.deepEqual(groups.find((g) => g.id === 878).tvIds, [10765]);
+  assert.deepEqual(groups.find((g) => g.id === 14).tvIds, [10765]);
+  assert.deepEqual(groups.find((g) => g.id === 35).tvIds, [35]);
+  assert.equal(
+    genreSupports(
+      groups.find((g) => g.id === 27),
+      "tv",
+    ),
+    false,
+  );
+  assert.equal(
+    genreSupports(
+      groups.find((g) => g.id === 10762),
+      "movie",
+    ),
+    false,
+  );
+});
+test("géneros: resultados mixtos intercalados conservan tipo aunque compartan ID", () => {
+  const items = interleaveTitles(
+    [
+      { id: 1, title: "Película" },
+      { id: 2, title: "Otra" },
+    ],
+    [{ id: 1, name: "Serie" }],
+  );
+  assert.deepEqual(
+    items.map((m) => m.media_type),
+    ["movie", "tv", "movie"],
+  );
+  assert.deepEqual(
+    items.map((m) => m.id),
+    [1, 1, 2],
+  );
+});

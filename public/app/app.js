@@ -129,7 +129,10 @@ window.addEventListener("keydown", (e) => {
     try {
       for (const r of await navigator.serviceWorker.getRegistrations())
         if (new URL(r.scope).pathname === "/") await r.unregister();
-      await navigator.serviceWorker.register(BASE + "sw.js", { scope: BASE });
+      await navigator.serviceWorker.register(BASE + "sw.js", {
+        scope: BASE,
+        updateViaCache: "none",
+      });
     } catch {}
   }
 })();

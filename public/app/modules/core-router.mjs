@@ -4,7 +4,7 @@ import { closeSheet } from "./ui-sheet.mjs";
 import { setView, head, empty } from "./ui-components.mjs";
 import { home } from "./views-home.mjs";
 import { explore } from "./views-explore.mjs";
-import { browse, genresPage } from "./views-catalog.mjs";
+import { browse, genresPage, genreBrowse } from "./views-catalog.mjs";
 import { detail } from "./views-detail.mjs";
 import { person, filmography } from "./views-person.mjs";
 import { listPage } from "./views-list.mjs";
@@ -54,6 +54,10 @@ export async function route() {
   document.body.classList.toggle(
     "is-settings",
     ["settings", "cache", "contact", "developer", "credits"].includes(name),
+  );
+  document.body.classList.toggle(
+    "is-personal",
+    ["profile", "support", "history", "following", "downloads"].includes(name),
   );
   const nav = [
     "browse",
@@ -113,11 +117,11 @@ export async function route() {
         p[1] ? decodeURIComponent(p[1]) : context?.query || "",
       );
     } else if (name === "browse") await browse(p[1], rev);
-    else if (name === "genres") await genresPage(rev);
+    else if (name === "genres") await genresPage(rev, p[1]);
     else if (name === "genre") {
-      if (!["movie", "tv"].includes(p[1]) || !/^\d+$/.test(p[2]))
+      if (!["all", "movie", "tv"].includes(p[1]) || !/^\d+$/.test(p[2]))
         throw Error("Categoría inválida");
-      await browse(p[1], rev, 1, p[2], decodeURIComponent(p[3] || ""));
+      await genreBrowse(p[1], rev, p[2], decodeURIComponent(p[3] || ""));
     } else if (name === "detail")
       await detail(p[1], p[2], rev, p[3] || context?.tab);
     else if (name === "person") await person(p[1], rev);

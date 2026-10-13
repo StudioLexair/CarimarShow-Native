@@ -1,4 +1,4 @@
-const SHELL = "carimarshow-shell-v2.1.1",
+const SHELL = "carimarshow-shell-v2.2.0",
   CONTENT = "carimarshow-content-v2.1.0",
   BASE = "/app/",
   MAX_AGE = 150 * 86400000;
@@ -6,6 +6,8 @@ const CORE = [
   "index.html",
   "styles.css",
   "settings.css",
+  "personal.css",
+  "startup.mjs",
   "app.js",
   "config.js",
   "manifest.webmanifest",
@@ -18,6 +20,7 @@ const CORE = [
   "brand/studiolexair.webp",
   "brand/tmdb.svg",
   "modules/core-config.mjs",
+  "modules/core-genres.mjs",
   "modules/core-model.mjs",
   "modules/core-router.mjs",
   "modules/core-state.mjs",

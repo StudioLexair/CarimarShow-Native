@@ -173,7 +173,39 @@ export function credits() {
 }
 export function support() {
   setView(
-    `${head("Ayuda y soporte", "#profile")}<section class="panel"><h2>Contacta con CarimarShow</h2><p>Para disponibilidad y condiciones, consulta al negocio. Compartir una lista no confirma un pedido.</p>${BUSINESS.contacts.map((c) => menuRow("WhatsApp · " + c.label, "https://wa.me/" + c.digits, "phone")).join("")}${menuRow("Enviar correo", "mailto:" + BUSINESS.email, "mail")}</section><section class="panel"><h2>Sin conexión</h2><p>Puedes consultar contenido guardado dentro de su vigencia. Para novedades y tráileres necesitas Internet. No se descargan películas.</p><h2>Tu perfil</h2><p>Es local y no requiere registro. No hay sincronización entre dispositivos. Desinstalar puede eliminar tus datos.</p></section>`,
+    `<div class="personal-page support-page"><header class="personal-title">${head("Ayuda y soporte", "#profile")}<h1>Estamos para ayudarte</h1><p>Resuelve tus dudas o habla directamente con CarimarShow.</p></header><section class="personal-card support-contact"><div class="personal-section-heading"><span><small>CONTACTO DEL NEGOCIO</small><h2>Hablemos de tu selección</h2></span>${icon("phone")}</div><p>Consulta disponibilidad y condiciones. Compartir tu lista prepara una consulta, no confirma un pedido.</p><div class="support-contacts">${BUSINESS.contacts.map((c, i) => `<div class="support-contact-tile"><span>Contacto ${i + 1}</span><strong>${c.label}</strong><a class="primary" data-support-whatsapp="${i + 1}" href="https://wa.me/${c.digits}" target="_blank" rel="noopener">WhatsApp ${icon("external")}</a><a class="text-button" href="tel:+${c.digits}">${icon("phone")}Llamar</a></div>`).join("")}</div><a class="support-mail" href="mailto:${BUSINESS.email}">${icon("mail")}<span>Enviar correo<small>${BUSINESS.email}</small></span>${icon("arrow")}</a></section><section class="personal-card support-faq"><div class="personal-section-heading"><span><small>GUÍA RÁPIDA</small><h2>Lo que necesitas saber</h2></span>${icon("help")}</div>${[
+      [
+        "¿Cómo funciona sin conexión?",
+        "La interfaz y el catálogo incluido están disponibles dentro de su vigencia. También puedes consultar fichas que hayas guardado. Las imágenes no guardadas, las novedades y los tráileres necesitan conexión.",
+      ],
+      [
+        "¿Dónde están las películas y los capítulos?",
+        "CarimarShow es un catálogo informativo con datos de TMDB. No reproduce ni descarga películas o capítulos. «Ver tráiler» abre el vídeo del título fuera de la app.",
+      ],
+      [
+        "¿Cómo preparo una consulta?",
+        "Añade películas y series a Mi Lista y toca Compartir mi lista. Elige uno de los dos contactos de WhatsApp o copia el mensaje. Tu lista no se borra y el envío no confirma disponibilidad.",
+      ],
+      [
+        "¿Por qué no hay una cuenta?",
+        "El perfil, la lista, el historial y tus preferencias son locales. No hay registro, contraseña ni sincronización entre dispositivos.",
+      ],
+      [
+        "¿Cómo actualizo la aplicación?",
+        "En la web, abre Perfil → Actualizar CarimarShow. En Android o Windows, descarga el instalador más reciente. Actualiza sin desinstalar para conservar los datos cuando la plataforma lo permita.",
+      ],
+      [
+        "¿Qué ocurre al limpiar la caché?",
+        "La caché automática se puede limpiar sin borrar Mi Lista, perfil ni fichas explícitas. Restablecer mis datos sí elimina los datos personales y las fichas guardadas.",
+      ],
+    ]
+      .map(
+        ([q, a], i) =>
+          `<details ${i === 0 ? "open" : ""}><summary>${esc(q)}${icon("arrow")}</summary><p>${esc(a)}</p></details>`,
+      )
+      .join(
+        "",
+      )}</section><p class="profile-note">CarimarShow ${esc(window.CARIMAR_CONFIG.version)} · Tus datos permanecen en tu dispositivo.</p></div>`,
   );
 }
 export function privacy() {

@@ -19,6 +19,7 @@ for(const [query,release] of [['John Wick',2014],['Dune',2024],['Deadpool',2024]
 snapshot.catalog=[...featured,...snapshot.catalog.filter(m=>!featured.some(f=>m.media_type==='movie'&&m.id===f.id))].slice(0,50);
 for(const p of ['trending/all/day','trending/all/week','movie/now_playing','movie/popular','tv/popular'])snapshot.responses[p]=await api(p);
 snapshot.responses['genre/movie/list']=await api('genre/movie/list');
+snapshot.responses['genre/tv/list']=await api('genre/tv/list');
 await pool(snapshot.catalog,async m=>{const k=`${m.media_type}/${m.id}`;snapshot.details[k]=await api(`${k}?append_to_response=credits,videos`); if(!snapshot.details[k].videos?.results?.some(v=>v.site==='YouTube')){const r=await fetch(`https://api.themoviedb.org/3/${k}/videos?language=en-US`,{headers:{Authorization:'Bearer '+token}});if(r.ok)snapshot.details[k].videos=await r.json()}});
 const tom=(await api('search/person?query=Tom%20Hardy')).results.find(p=>p.name==='Tom Hardy');
 const actors=[...new Map(Object.values(snapshot.details).flatMap(d=>(d.credits?.cast||[]).slice(0,2)).map(p=>[p.id,p])).values()].slice(0,9);

@@ -25,7 +25,7 @@ public partial class MainWindow : Window {
                 if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri)) return;
                 if (uri.Scheme is "data" or "blob" or "about") return;
                 // Explicit MIME for modules, including older installed WebView2 runtimes.
-                if (uri.Scheme == "https" && uri.Host == Host && uri.AbsolutePath.StartsWith("/app/modules/") && uri.AbsolutePath.EndsWith(".mjs")) {
+                if (uri.Scheme == "https" && uri.Host == Host && (uri.AbsolutePath.StartsWith("/app/modules/") || uri.AbsolutePath == "/app/startup.mjs") && uri.AbsolutePath.EndsWith(".mjs")) {
                     var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "web")) + Path.DirectorySeparatorChar;
                     var file = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
                     if (file.StartsWith(root, StringComparison.OrdinalIgnoreCase) && File.Exists(file))

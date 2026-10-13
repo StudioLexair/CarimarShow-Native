@@ -2,9 +2,11 @@ import { dbEntries } from "./storage-cache.mjs";
 import { validAge } from "./storage-policy.mjs";
 import { state } from "./core-state.mjs";
 import { title, kind } from "./core-model.mjs";
-export function genres() {
+export function genres(type = null) {
   const all = new Map();
-  for (const d of Object.values(state.seed.details))
+  for (const [path, d] of Object.entries(state.seed.details).filter(
+    ([path]) => !type || path.startsWith(type + "/"),
+  ))
     for (const g of d.genres || []) all.set(g.id, g);
   return [...all.values()];
 }
@@ -29,7 +31,9 @@ export function seedFallback(path, params) {
   if (/^genre\//.test(path))
     return (
       state.seed.responses?.[path] ||
-      (genres().length ? { genres: genres() } : null)
+      (genres(path.split("/")[1]).length
+        ? { genres: genres(path.split("/")[1]) }
+        : null)
     );
   if (/\/videos$/.test(path)) {
     const d = state.seed.details[path.replace("/videos", "")];
