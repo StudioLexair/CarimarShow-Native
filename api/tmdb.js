@@ -2,6 +2,9 @@
 const ORIGINS = new Set(['https://carimarshow-native.vercel.app', 'https://appassets.androidplatform.net', 'https://carimarshow.local']);
 const ALLOWED = /^(trending\/(all|movie|tv)\/(day|week)|movie\/(popular|top_rated|now_playing|\d+)|tv\/(popular|top_rated|on_the_air|\d+)|search\/(multi|movie|tv|person)|person\/\d+(\/combined_credits)?)$/;
 module.exports = async (req, res) => {
+  // CORS depende del origen: evitar que la CDN reutilice respuestas sin sus cabeceras.
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('Vary', 'Origin');
   const origin = req.headers.origin;
   if (origin && ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -29,7 +32,7 @@ module.exports = async (req, res) => {
       signal: AbortSignal.timeout(10000)
     });
     if (!upstream.ok) return res.status(upstream.status === 429 ? 429 : 502).json({ error: 'TMDB no disponible. Intenta más tarde.' });
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    // El cliente conserva las respuestas en IndexedDB; no se cachea CORS en la CDN.
     return res.status(200).json(await upstream.json());
   } catch { return res.status(502).json({ error: 'No se pudo conectar con TMDB' }); }
 };
