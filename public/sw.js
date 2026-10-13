@@ -1,4 +1,4 @@
-const SHELL='carimarshow-shell-v1.0.1', DATA='carimarshow-data-v1';
+const SHELL='carimarshow-shell-v1.0.1-r2', DATA='carimarshow-data-v1';
 const CORE=['/','/index.html','/styles.css','/app.js','/config.js','/catalog-snapshot.json','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/maskable-512.png'];
 self.addEventListener('install',e=>e.waitUntil((async()=>{
  const cache=await caches.open(SHELL); await cache.addAll(CORE);

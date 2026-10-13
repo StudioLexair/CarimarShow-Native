@@ -16,6 +16,8 @@ El paquete contiene **50 títulos, sus fichas, 10 perfiles con filmografía y 65
 
 La interfaz, el catálogo incluido y tu lista se abren sin internet desde el primer arranque del APK/EXE. Las consultas son **network-first**, con respaldo en IndexedDB o en el catálogo incluido. Se guardan hasta 250 consultas y 100 imágenes adicionales. Las filmografías incluidas pueden tener pósteres que requieren una primera descarga. Tráileres, WhatsApp y sitios externos necesitan conexión.
 
+Cuando cambien los archivos del shell web, cambiar también la revisión `SHELL` en `public/sw.js` para que las instalaciones PWA reciban la actualización.
+
 La PWA necesita una primera visita con internet y que el service worker termine de descargar los archivos. Datos locales y lista son por dispositivo; no hay sincronización ni copia en la nube. No se elimina la lista al borrar caché.
 
 ## Desarrollo
