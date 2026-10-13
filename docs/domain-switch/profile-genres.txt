@@ -1,0 +1,8 @@
+PASS profile redesigned: real stats, local profile controls, current version, no overflow
+PASS help redesign, ordered real contacts and FAQ
+PASS mixed genre movie 28 / TV 10759: real results and pagination
+PASS only TV and back from real series detail restores filter
+PASS only movies within same genre
+PASS official TV-only genre and movie-only genres not misrepresented
+PASS offline TV taxonomy available and marked local
+PASS obsolete shell bypassed; existing personal data preserved
