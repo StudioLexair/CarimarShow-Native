@@ -33,7 +33,7 @@ public partial class MainWindow : Window {
                     else e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(), 404, "Not Found", "Content-Type: text/plain");
                     return;
                 }
-                if (uri.Scheme == "https" && (uri.Host == Host || uri.Host == "carimarshow-native.vercel.app" || uri.Host == "image.tmdb.org")) return;
+                if (uri.Scheme == "https" && (uri.Host == Host || uri.Host == "carimarshow.vercel.app" || uri.Host == "image.tmdb.org")) return;
                 e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(), 403, "Blocked", "Content-Type: text/plain");
             };
             core.Navigate($"https://{Host}/app/index.html#home");

@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.2.0
+# CarimarShow Native · 2.2.1
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -138,6 +138,8 @@ El workflow **QA Web and Android 16** comprueba assets reales offline en WebView
 
 [Resumen](docs/MEJORAS-2.2.0.md): Perfil/Ayuda rediseñados; selección películas + series o un solo tipo en portada y dentro de cada género; taxonomías oficiales por plataforma; arranque que evita shells antiguos sin borrar personales.
 
-## Dominio principal (13 de octubre de 2026)
+## Dominio principal — 2.2.1
 
-El proyecto Vercel actual se llama `carimarshow` y conserva su ID original `prj_nRw7mvaLAhU6zSPUllGVpf9SIqjX`. Dominio principal: https://carimarshow.vercel.app/. `carimarshow-native.vercel.app` sigue siendo un alias del **mismo proyecto** para las aplicaciones Android/Windows ya publicadas y los perfiles web guardados en ese origen. No es otro despliegue antiguo. El almacenamiento del navegador está separado por origen: los datos del dominio con `-native` no se trasladan automáticamente al dominio corto; se pueden seguir usando en el alias de compatibilidad. El repositorio sigue siendo `StudioLexair/CarimarShow-Native`.
+https://carimarshow.vercel.app/ es la única dirección pública principal; Android y Windows 2.2.1 usan este dominio para el API. El dominio `carimarshow-native.vercel.app` se retira sin redirección después de verificar/publicar los nuevos paquetes. Versiones nativas anteriores deben actualizarse para consultar el catálogo online. Instala encima, sin desinstalar ni restablecer datos. El almacenamiento web es por origen y no se migra automáticamente entre dominios. El repositorio continúa siendo `StudioLexair/CarimarShow-Native`.
+
+[Informe de retiro y actualización](docs/RETIRADA-DOMINIO-2.2.1.md).

@@ -7,7 +7,6 @@ const {
 const allow = limiter();
 const ORIGINS = new Set([
   "https://carimarshow.vercel.app",
-  "https://carimarshow-native.vercel.app",
   "https://appassets.androidplatform.net",
   "https://carimarshow.local",
 ]);

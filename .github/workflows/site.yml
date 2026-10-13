@@ -34,7 +34,7 @@ jobs:
             if (project.id !== VERCEL_PROJECT_ID || project.name !== 'carimarshow') throw Error('Unexpected project');
             const deployment = project.targets?.production?.id;
             if (!deployment) throw Error('Missing production deployment');
-            for (const alias of ['carimarshow.vercel.app', 'carimarshow-native.vercel.app']) {
+            for (const alias of ['carimarshow.vercel.app']) {
               const response = await fetch(`https://api.vercel.com/v2/deployments/${deployment}/aliases?${query}`, {method: 'POST', headers, body: JSON.stringify({alias})});
               if (!response.ok) throw Error(`Alias assignment: HTTP ${response.status}`);
               console.log(`Verified alias: ${alias}`);

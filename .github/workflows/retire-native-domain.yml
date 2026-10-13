@@ -1,0 +1,93 @@
+name: Retire old native domain after verified 2.2.1 release
+on:
+  workflow_dispatch:
+    inputs:
+      build_run:
+        description: Successful Android/Windows 2.2.1 build run ID
+        required: true
+        type: string
+      qa_run:
+        description: Successful web/Android 16 2.2.1 QA run ID
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  retire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify release and remove only the retired project domain
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_RUN: ${{ inputs.build_run }}
+          QA_RUN: ${{ inputs.qa_run }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          (async () => {
+            const env = process.env;
+            assert.equal(env.GH_REPO, 'StudioLexair/CarimarShow-Native');
+            assert.equal(env.VERCEL_PROJECT_ID, 'prj_nRw7mvaLAhU6zSPUllGVpf9SIqjX');
+            const gh = `https://api.github.com/repos/${env.GH_REPO}`;
+            async function github(path) {
+              const r = await fetch(gh + path, {headers: {Authorization: `Bearer ${env.GH_TOKEN}`, Accept: 'application/vnd.github+json'}});
+              assert.ok(r.ok, `GitHub verification: HTTP ${r.status}`);
+              return r.json();
+            }
+            const ref = await github('/git/ref/tags/v2.2.1');
+            const release = await github('/releases/latest');
+            assert.equal(release.tag_name, 'v2.2.1');
+            assert.equal(release.draft, false);
+            for (const name of ['CarimarShow-Android.apk', 'CarimarShow-Android.aab', 'CarimarShow-Windows-x64-Setup.exe'])
+              assert.ok(release.assets.some(a => a.name === name && a.size > 0), 'Missing native package');
+            for (const [id, workflow] of [[env.BUILD_RUN, 'Build Android and Windows'], [env.QA_RUN, 'QA Web and Android 16']]) {
+              assert.match(id, /^\d+$/);
+              const run = await github('/actions/runs/' + id);
+              assert.equal(run.name, workflow);
+              assert.equal(run.conclusion, 'success');
+              assert.equal(run.head_sha, ref.object.sha);
+            }
+            let r = await fetch('https://carimarshow.vercel.app/app/?v=2.2.1', {redirect: 'error'});
+            assert.equal(r.status, 200);
+            assert.ok((await r.text()).includes('data-app-version="2.2.1"'));
+            for (const origin of ['https://appassets.androidplatform.net', 'https://carimarshow.local']) {
+              r = await fetch('https://carimarshow.vercel.app/api/tmdb?path=genre/tv/list', {headers: {Origin: origin}});
+              assert.equal(r.status, 200);
+              assert.equal((await r.json()).genres.length, 16);
+            }
+            const query = new URLSearchParams({teamId: env.VERCEL_ORG_ID});
+            const headers = {Authorization: `Bearer ${env.VERCEL_TOKEN}`, 'Content-Type': 'application/json'};
+            async function vercel(path, method = 'GET') {
+              const response = await fetch(`https://api.vercel.com${path}?${query}`, {headers, method});
+              assert.ok(response.ok || response.status === 404, `Vercel operation: HTTP ${response.status}`);
+              return response;
+            }
+            const project = await (await vercel('/v9/projects/' + env.VERCEL_PROJECT_ID)).json();
+            assert.equal(project.id, env.VERCEL_PROJECT_ID);
+            assert.equal(project.name, 'carimarshow');
+            const retired = 'carimarshow-native.vercel.app';
+            const domains = await (await vercel('/v9/projects/' + project.id + '/domains')).json();
+            assert.ok(domains.domains.some(d => d.name === 'carimarshow.vercel.app'), 'Main domain must remain');
+            let aliasResponse = await vercel('/v4/aliases/' + retired);
+            if (aliasResponse.ok) {
+              const alias = await aliasResponse.json();
+              assert.equal(alias.projectId, project.id);
+              assert.equal(alias.alias, retired);
+              await vercel('/v2/aliases/' + alias.uid, 'DELETE');
+            }
+            if (domains.domains.some(d => d.name === retired))
+              await vercel('/v9/projects/' + project.id + '/domains/' + retired, 'DELETE');
+            const remaining = await (await vercel('/v9/projects/' + project.id + '/domains')).json();
+            assert.ok(!remaining.domains.some(d => d.name === retired));
+            assert.ok(remaining.domains.some(d => d.name === 'carimarshow.vercel.app'));
+            console.log('Retired exact old hostname without redirect; current project and short domain retained.');
+          })().catch(error => {console.error(error.message); process.exit(1);});
+          NODE

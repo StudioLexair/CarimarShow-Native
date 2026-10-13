@@ -62,6 +62,7 @@ class OfflineFlowTest {
             waitFor("!!document.querySelector('.hero h1') && document.querySelector('#splash').hidden")
             waitFor("navigator.onLine===false")
             assertTrue(js("document.querySelector('.hero h1').textContent").contains("John Wick"))
+            assertEquals("\"https://carimarshow.vercel.app\"", js("window.CARIMAR_CONFIG.apiOrigin"))
             js("location.hash='#detail/movie/693134'")
             waitFor("!!document.querySelector('.detail-actions a[href*=youtube]')")
             val href = JSONTokener(js("document.querySelector('.detail-actions a[href*=youtube]').href")).nextValue().toString()
@@ -89,4 +90,35 @@ class OfflineFlowTest {
             device.executeShellCommand("svc wifi enable")
         }
     }
+    @Test fun shortDomainProxyWorksInNativeWebView() {
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        device.executeShellCommand("cmd connectivity airplane-mode disable")
+        device.executeShellCommand("svc wifi enable")
+        device.executeShellCommand("svc data enable")
+        val connectivity = InstrumentationRegistry.getInstrumentation().targetContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkDeadline = System.currentTimeMillis() + 60000
+        while (connectivity.activeNetwork == null && System.currentTimeMillis() < networkDeadline) Thread.sleep(200)
+        assertNotNull("Online test requires a real network", connectivity.activeNetwork)
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        lateinit var web: WebView
+        scenario.onActivity { activity -> web = (activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as WebView) }
+        fun js(script: String): String {
+            var value = "null"
+            val done = CountDownLatch(1)
+            InstrumentationRegistry.getInstrumentation().runOnMainSync { web.evaluateJavascript(script) { value = it; done.countDown() } }
+            assertTrue(done.await(10, TimeUnit.SECONDS))
+            return value
+        }
+        try {
+            val readyDeadline = System.currentTimeMillis() + 60000
+            while (js("!!window.CARIMAR_CONFIG") != "true" && System.currentTimeMillis() < readyDeadline) Thread.sleep(200)
+            assertEquals("\"https://carimarshow.vercel.app\"", js("window.CARIMAR_CONFIG.apiOrigin"))
+            js("window.__proxyCheck=null; fetch(window.CARIMAR_CONFIG.apiOrigin+'/api/tmdb?path=genre/tv/list').then(async r=>{const d=await r.json();window.__proxyCheck={status:r.status,count:d.genres?.length};}).catch(e=>window.__proxyCheck={error:String(e)})")
+            val responseDeadline = System.currentTimeMillis() + 60000
+            while (js("!!window.__proxyCheck") != "true" && System.currentTimeMillis() < responseDeadline) Thread.sleep(200)
+            assertEquals("Real native WebView -> short domain -> TMDB", "200", js("window.__proxyCheck?.status"))
+            assertEquals("16", js("window.__proxyCheck?.count"))
+        } finally { scenario.close() }
+    }
+
 }

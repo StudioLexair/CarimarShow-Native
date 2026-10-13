@@ -373,7 +373,16 @@ test("proxy: dominio corto y nativas permitidos, origen ajeno rechazado", async 
   for (const origin of ["https://carimarshow.vercel.app", "https://carimarshow-native.vercel.app", "https://appassets.androidplatform.net", "https://carimarshow.local", "https://ajeno.example"]) {
     const res = { headers: {}, setHeader(k,v) { this.headers[k]=v; }, status(n) { this.code=n; return this; }, end() {}, json(data) { this.data=data; return this; } };
     await handler({method: "OPTIONS", headers: {origin}}, res);
-    assert.equal(res.code, origin === "https://ajeno.example" ? 403 : 204);
-    assert.equal(res.headers["Access-Control-Allow-Origin"], origin === "https://ajeno.example" ? undefined : origin);
+    assert.equal(res.code, ["https://ajeno.example", "https://carimarshow-native.vercel.app"].includes(origin) ? 403 : 204);
+    assert.equal(res.headers["Access-Control-Allow-Origin"], ["https://ajeno.example", "https://carimarshow-native.vercel.app"].includes(origin) ? undefined : origin);
+  }
+});
+
+
+test("2.2.1: proxy y allowlists nativas usan únicamente el dominio corto", () => {
+  for (const file of ["public/app/config.js", "android/app/src/main/java/com/studiolexair/carimarshow/MainActivity.kt", "windows/MainWindow.xaml.cs"]) {
+    const source = fs.readFileSync(file, "utf8");
+    assert.ok(source.includes("carimarshow.vercel.app"), file);
+    assert.ok(!source.includes("carimarshow-native.vercel.app"), file);
   }
 });

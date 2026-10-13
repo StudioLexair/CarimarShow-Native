@@ -16,7 +16,7 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private val localHost = "appassets.androidplatform.net"
-    private val remoteHosts = setOf("carimarshow-native.vercel.app", "image.tmdb.org")
+    private val remoteHosts = setOf("carimarshow.vercel.app", "image.tmdb.org")
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(state: Bundle?) {
