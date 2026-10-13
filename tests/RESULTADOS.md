@@ -26,3 +26,15 @@ Pruebas sobre servidor Node real conectado a TMDB, Chromium/Playwright. Los dato
 | JavaScript | Sin errores durante los recorridos |
 
 Compilaciones y pruebas de producción se completan en la entrega. **Pendiente de QA físico:** instalación/desinstalación y modo avión en Android/Windows limpios; botón Atrás, apertura externa de tráileres y selector de avatar desde el contenedor Android. Compilar y simular orígenes nativos en Chromium no demuestra esos comportamientos de sistema operativo.
+
+## Verificación final en producción
+
+- Vercel producción: `/`, `/app/` y manifest HTTP 200.
+- Los tres recorridos de navegador se repitieron sobre el dominio público, con los mismos resultados y sin errores JavaScript.
+- Ambos orígenes nativos simulados: API HTTP 200 y búsqueda de Tom Hanks correcta. Origen no permitido: HTTP 403.
+- Primer arranque **sin red y sin datos previamente guardados**, simulado bajo ambos orígenes: John Wick y 30 tarjetas del contenido incluido visibles.
+- Actions: compilaciones Android y Windows de `v2.0.0` completadas con éxito; firma APK y assets verificados por el pipeline.
+- APK inspeccionado: `/app/` y landing empaquetadas, 50 títulos, 76 imágenes, arte de arranque; sin tokens en assets y SHA256 coincidente con la release.
+- APK: 5,37 MiB. Instalador Windows completo: 257,24 MiB.
+
+Quedan pendientes las pruebas físicas de sistema operativo descritas arriba. No se presenta esta verificación como una garantía de ausencia de fallos en todos los dispositivos.
