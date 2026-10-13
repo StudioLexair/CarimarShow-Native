@@ -141,7 +141,7 @@ function searchPage() {
     e.preventDefault();const q=$('#query').value.trim();if(!q)return;
     const rev=++searchRevision, route=routeRevision,type=$('#searchType').value;
     $('#searchResults').innerHTML='<div class="loading-state">Buscando…</div>';
-    try {const data=await api(`search/${type}`,{query:q}); if(rev!==searchRevision||route!==routeRevision)return;remember(data.results||[]);$('#searchResults').innerHTML=offlineNote(data)+`<div class="section-head"><h2>Resultados para “${esc(q)}”</h2></div>`+(data.results?.length?cards(data.results):'<div class="empty">No encontramos coincidencias. Prueba otro nombre o consulta con conexión.</div>');hydrate();}
+    try {const data=await api(`search/${type}`,{query:q}); if(rev!==searchRevision||route!==routeRevision)return; if(type!=='multi') data.results=(data.results||[]).map(m=>({...m,media_type:type})); remember(data.results||[]);$('#searchResults').innerHTML=offlineNote(data)+`<div class="section-head"><h2>Resultados para “${esc(q)}”</h2></div>`+(data.results?.length?cards(data.results):'<div class="empty">No encontramos coincidencias. Prueba otro nombre o consulta con conexión.</div>');hydrate();}
     catch(err){if(rev===searchRevision&&route===routeRevision)$('#searchResults').innerHTML=`<div class="notice error-msg">${esc(err.message)}</div>`;}
   };$('#query').focus({preventScroll:true});
 }
