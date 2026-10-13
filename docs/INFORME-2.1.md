@@ -1,6 +1,6 @@
 # CarimarShow 2.1.0 — informe de mejora
 
-Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. Web 2.1 desplegada y probada en producción; primer QA Android 16 y navegador de Actions completado con éxito.
+Fecha: 13 de octubre de 2026. Repositorio: StudioLexair/CarimarShow-Native. Mejora de la versión actual 2.0, no sustitución. Web 2.1 desplegada y probada en producción; APK/AAB e instalador Windows compilados. Primer QA Android 16 completado con éxito; segunda ejecución detectó una transición de red del emulador: el driver se refuerza esperando desconexión real antes del arranque. Instaladores mantenidos en borrador hasta terminar esta repetición.
 
 ## 1. Auditoría previa y funciones conservadas
 

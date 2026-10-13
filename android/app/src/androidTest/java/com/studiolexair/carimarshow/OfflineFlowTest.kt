@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Instrumentation.ActivityResult
 import android.content.Intent
 import android.net.Uri
+import android.net.ConnectivityManager
+import android.content.Context
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
@@ -30,8 +32,15 @@ import java.util.concurrent.TimeUnit
 class OfflineFlowTest {
     @Test fun bundledOfflineOrderAndExternalTrailer() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        // Radio state propagates asynchronously; disabling Wi-Fi alone can leave
+        // cellular connected for a moment on freshly booted CI emulators.
+        device.executeShellCommand("cmd connectivity airplane-mode enable")
         device.executeShellCommand("svc wifi disable")
         device.executeShellCommand("svc data disable")
+        val connectivity = InstrumentationRegistry.getInstrumentation().targetContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val offlineDeadline = System.currentTimeMillis() + 30000
+        while (connectivity.activeNetwork != null && System.currentTimeMillis() < offlineDeadline) Thread.sleep(200)
+        assertNull("Emulator still has an active network; don't call this an offline test", connectivity.activeNetwork)
         Intents.init()
         intending(hasAction(Intent.ACTION_VIEW)).respondWith(ActivityResult(Activity.RESULT_OK, null))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
@@ -51,7 +60,7 @@ class OfflineFlowTest {
         }
         try {
             waitFor("!!document.querySelector('.hero h1') && document.querySelector('#splash').hidden")
-            assertEquals("false", js("navigator.onLine"))
+            waitFor("navigator.onLine===false")
             assertTrue(js("document.querySelector('.hero h1').textContent").contains("John Wick"))
             js("location.hash='#detail/movie/693134'")
             waitFor("!!document.querySelector('.detail-actions a[href*=youtube]')")
@@ -76,6 +85,7 @@ class OfflineFlowTest {
         } finally {
             scenario.close()
             Intents.release()
+            device.executeShellCommand("cmd connectivity airplane-mode disable")
             device.executeShellCommand("svc wifi enable")
         }
     }

@@ -1,0 +1,4 @@
+Stable v2.0/v2.1 signer SHA256: 1c684c5a0f5f6a7a348bd55c3f2ba9ce9dfc6beec1fdaae68a2a888a178ade2e
+APK SHA256: d9c4b17576fec007f16560303f8b0d4af828add4a6caee66488d3081f527b575
+Bundled assets/app/index.html, catalog-snapshot.json, modules/services-orders.mjs and config.js version2.1.0 verified.
+CI apksigner verify --verbose --print-certs: PASS.
