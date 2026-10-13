@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.studiolexair.carimarshow.OfflineFlowTest" tests="1" failures="0" errors="0" skipped="0" time="16.12" timestamp="2026-10-13T17:43:46" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 16" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="bundledOfflineOrderAndExternalTrailer" classname="com.studiolexair.carimarshow.OfflineFlowTest" time="14.81" />
+</testsuite>

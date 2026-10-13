@@ -37,4 +37,15 @@ Resultados en `docs/2.2.0/`. Validación física de vídeo/WhatsApp/instalación
 
 ## Publicación
 
-Se completa tras Actions y revisión final. El código nuevo se entrega en web y en los paquetes Android/Windows, conservando el certificado Android anterior.
+**Publicada:** https://github.com/StudioLexair/CarimarShow-Native/releases/tag/v2.2.0
+
+- Perfil actualizado: https://carimarshow-native.vercel.app/app/?v=2.2.0#profile
+- Géneros mixtos: https://carimarshow-native.vercel.app/app/?v=2.2.0#genres/all
+- Despliegue web SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38440503044
+- QA web + Android 16 SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38440502954
+- Build Android/Windows SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38440503844
+- APK: SHA256 `6f45d034e850db4ebabdfabe22769e2f591602fdece8377bd8a76e5a882942c0`, versionCode 7. Certificado SHA256 `1c684c5a0f5f6a7a348bd55c3f2ba9ce9dfc6beec1fdaae68a2a888a178ade2e`, igual a las versiones anteriores.
+- Nuevos archivos de arranque/CSS/géneros verificados dentro del APK. Prueba Android 16: 1 test, cero fallos/errores/omitidos, XML en `docs/2.2.0/android16.xml`.
+- Aserciones de Perfil/géneros repetidas contra la publicación real: PASS (`production-profile-genres.txt`).
+
+**En la web:** entrar al enlace actualizado o recargar la pestaña antigua. **En Android/Windows:** usar el instalador nuevo sin desinstalar el anterior. No usar Restablecer mis datos para actualizar. El plan de Vercel no se cambió y no se contrató ningún servicio.
