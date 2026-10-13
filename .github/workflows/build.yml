@@ -35,6 +35,11 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           APP_BUILD_NUMBER: ${{ github.run_number }}
         run: gradle assembleRelease bundleRelease --no-daemon
+      - name: Verify signature and bundled interface
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/app/build/outputs/apk/release/app-release.apk
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/index.html"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/catalog-snapshot.json"
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts
