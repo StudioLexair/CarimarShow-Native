@@ -1,0 +1,3 @@
+APK version 2.1.1 and new moveWithinType module verified.
+Stable certificate SHA256: 1c684c5a0f5f6a7a348bd55c3f2ba9ce9dfc6beec1fdaae68a2a888a178ade2e
+APK SHA256: 660a6f7812b6d8dbe3065eb27850902309ff7127adac1f41d96c79a2da49c731

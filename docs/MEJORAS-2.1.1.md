@@ -41,4 +41,14 @@ BASE=http://localhost:8083 node tests/browser.cjs
 
 ## Publicación
 
-Resultados de CI/instaladores se incorporan al finalizar. Release preparada en borrador hasta completar el proceso. APK mantiene la firma existente; Windows conserva la limitación de certificado comercial. No se contrata ningún servicio ni se modifica la configuración del plan.
+**Publicada y empaquetada:**
+
+- Web: https://carimarshow-native.vercel.app/app/ — despliegue SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38433912067
+- Release APK/AAB/Windows: https://github.com/StudioLexair/CarimarShow-Native/releases/tag/v2.1.1
+- Build SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38433910746
+- QA web final SUCCESS: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38434823917
+- Android 16: job `android-16` SUCCESS del run https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38433912038 — XML `docs/2.1.1/android16.xml`, 1 test, cero fallos/errores/omitidos. El job web de esa primera ejecución detectó una aserción de prueba demasiado restrictiva cuando llegó otra imagen automática; se corrigió la identificación del elemento y se volvió a ejecutar web con éxito, sin modificar el código de la aplicación compilada.
+- APK firmado: SHA256 `660a6f7812b6d8dbe3065eb27850902309ff7127adac1f41d96c79a2da49c731`.
+- Certificado Android idéntico a 2.1.0; versionCode 6 frente al 5 anterior. Verificación de paquete y módulo nuevo realizada.
+
+Windows conserva la limitación de certificado comercial y no se afirma prueba física nueva. El test Android intercepta el Intent: no demuestra reproducción YouTube ni envío WhatsApp. **No se contrató ningún servicio ni se modificó el plan de Vercel.**
