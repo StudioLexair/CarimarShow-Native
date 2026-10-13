@@ -82,6 +82,7 @@ Ver README para instalación de Playwright y secretos requeridos. Web: `/` prese
 
 - Release: https://github.com/StudioLexair/CarimarShow-Native/releases/tag/v2.1.0
 - Web: https://carimarshow-native.vercel.app/app/
+- Despliegue web final (revisión shell r2): https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38429315769 — **SUCCESS**. Aserciones repetidas contra esta publicación: PASS (`qa-production-final-2.1.txt`); comprobado shell r2 HTTP 200 y proxy real rechazando ruta/parámetro arbitrarios con 400, POST con 405 y origen ajeno con 403. Release pública «latest» confirmada v2.1.0 con cinco archivos.
 - Tag nativo `v2.1.0`: commit `1b2e669`. Build Android y Windows: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38427608835 — **SUCCESS**.
 - QA final Android 16 y navegador: https://github.com/StudioLexair/CarimarShow-Native/actions/runs/38428405558 — **SUCCESS**. 1 test Android, cero fallos/errores/omitidos; 11 unitarias y aserciones web correctas.
 - APK: 5.46 MiB; SHA256 `d9c4b17576fec007f16560303f8b0d4af828add4a6caee66488d3081f527b575`.
