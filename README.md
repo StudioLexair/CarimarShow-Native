@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.0.0
+# CarimarShow Native · 2.1.0
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -17,7 +17,8 @@ La app instalable inicia en `/app/`, nunca en la presentación. Ambos sitios se 
 4. **Ficha:** información y votos reales, guardar, compartir, descarga de ficha, pestañas de descripción/reparto/tráileres/similares y actores enlazados.
 5. **Categorías:** géneros reales de TMDB y resultados de discover paginados; tarjetas con imágenes del catálogo.
 6. **Actor:** biografía, fecha/lugar de nacimiento, seguir, filmografía con créditos reales y reparto navegable.
-7. **Mi Lista:** películas/series separadas; opciones para quitar, compartir y guardar fichas offline.
+7. **Mi Lista:** películas/series separadas, deduplicación, orden manual/alfabético/por año persistente; pedido agrupado con dos botones WhatsApp propios en orden +53 5332 4928 y +53 7866 0658, copiar/compartir sin borrar la selección.
+9. **Configuración:** estadísticas reales de lista/almacenamiento, limpieza por tipo, contactos originales de CarimarShow/Studio Lexair y créditos TMDB.
 8. **Perfil:** nombre y foto editables, estadísticas calculadas, personas seguidas, historial, descargas, ajustes, ayuda y restablecimiento de datos.
 
 **«Ver tráiler» abre YouTube** cuando existe un vídeo válido de TMDB. Si no hay vídeo, la ficha lo informa. Sin cuentas no existe «Cerrar sesión»: se muestra «Restablecer mis datos». «Actores seguidos» no son seguidores sociales inventados. La hora, batería y cobertura las proporciona el dispositivo; no están dibujadas en el HTML.
@@ -34,7 +35,11 @@ El paquete incluye **50 títulos con fichas, 10 personas con filmografía y 76 i
 
 - La interfaz y el contenido incluido abren desde el primer arranque Android/Windows, sin descargar una web remota.
 - Consultas **network-first**, con respaldo en IndexedDB y snapshot.
-- Caché automática acotada: 250 consultas y 100 imágenes adicionales.
+- Caché automática: 30 días; máximo 250 consultas / 12 MiB y 100 imágenes / 30 MiB; LRU por acceso.
+- Descargas explícitas: vigencia máxima 150 días, 100 fichas / 8 MiB y 400 imágenes / 80 MiB; al llegar al límite se rechaza la nueva descarga, no se borra otra silenciosamente.
+- Las fechas originales no se reinician al reutilizar datos incluidos. Metadatos personales vencidos se sustituyen por IDs/tipo; la selección se conserva y se actualiza al abrir la ficha online.
+- El SW separa el shell sin datos TMDB de snapshot/imágenes fechados; IndexedDB v3 migra descargas válidas anteriores.
+- Los bytes JSON son estimados, los Blob usan su tamaño real; `navigator.storage.estimate()` informa una estimación del origen, no espacio libre exacto del dispositivo.
 - Descarga explícita de una ficha: guarda información, pósteres, backdrop y hasta ocho retratos del reparto en almacenes separados. Solo se informa completada si se han guardado los archivos. No descarga vídeo.
 - Borrar caché automática **conserva descargas, lista, perfil e historial**. Eliminar una descarga conserva Mi Lista. Restablecer datos sí elimina todo lo personal.
 - La PWA requiere primera visita online y que termine de instalarse el service worker. Las imágenes de filmografías no incluidas necesitan una primera descarga.
@@ -102,3 +107,23 @@ node tests/native-origins.cjs # sobre producción
 `TEST_OUTPUT` controla la carpeta de capturas. `UPDATE_PREVIEW=1` permite actualizar la captura real de portada. Ver `tests/RESULTADOS.md`. Las simulaciones de origen WebView en Chromium no sustituyen una instalación física: probar APK en Android y EXE en Windows limpio antes de distribución al negocio.
 
 Código reservado a Studio Lexair/Yolexis. Datos e imágenes sujetos a sus titulares y términos de TMDB; revisar licencia comercial según el uso del negocio. Este producto utiliza la API de TMDB, pero no está respaldado ni certificado por TMDB.
+
+## Mejora 2.1.0 y verificación
+
+[Informe de implementación, auditoría y pruebas](docs/INFORME-2.1.md) · [Permisos TMDB y almacenamiento](docs/TMDB-Y-ALMACENAMIENTO.md) · [Arquitectura](docs/ARQUITECTURA.md).
+
+```bash
+npm run check
+npm test
+PORT=8083 npm run dev
+# En otra terminal; instalar Playwright primero:
+npm install --no-save playwright
+npx playwright install chromium
+BASE=http://localhost:8083 node tests/browser.cjs
+BASE=http://localhost:8083 node tests/downloads.cjs
+BASE=http://localhost:8083 node tests/improvements.cjs
+```
+
+El proxy mantiene la credencial solo en Vercel, usa rutas/parámetros permitidos, tiempos de espera y validación. La regla WAF activa aplica 120 GET/minuto/IP a `/api/tmdb`; contador por región según Vercel. CORS no autentica a los clientes: el catálogo es público, la credencial es privada. No se incorpora una supuesta clave secreta a los APK.
+
+El workflow **QA Web and Android 16** comprueba assets reales offline en WebView API 36 y el Intent externo del tráiler. Ese test intercepta el Intent: **no demuestra reproducción de YouTube ni envío por WhatsApp**. Su resultado debe revisarse en Actions antes de una entrega.

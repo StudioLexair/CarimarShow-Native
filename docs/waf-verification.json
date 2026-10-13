@@ -1,0 +1,9 @@
+{
+  "requests": 125,
+  "statuses": {
+    "400": 120,
+    "429": 5
+  },
+  "path": "invalid route; no TMDB calls",
+  "waf": "active v1; fixed window 60s; 120 GET /api/tmdb per IP"
+}

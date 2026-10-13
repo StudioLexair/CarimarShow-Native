@@ -7,8 +7,9 @@ android {
         applicationId = "com.studiolexair.carimarshow"
         minSdk = 24
         targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = (System.getenv("APP_BUILD_NUMBER") ?: "1").toInt()
-        versionName = "2.0.0"
+        versionName = "2.1.0"
     }
     signingConfigs {
         create("release") {
@@ -36,4 +37,11 @@ val copyWeb by tasks.registering(Sync::class) {
     into(layout.buildDirectory.dir("generated/webassets"))
 }
 tasks.named("preBuild") { dependsOn(copyWeb) }
-dependencies { implementation("androidx.webkit:webkit:1.12.1") }
+dependencies {
+    implementation("androidx.webkit:webkit:1.12.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.6.1")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
+}

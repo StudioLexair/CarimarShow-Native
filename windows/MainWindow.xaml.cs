@@ -24,6 +24,15 @@ public partial class MainWindow : Window {
             core.WebResourceRequested += (_, e) => {
                 if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri)) return;
                 if (uri.Scheme is "data" or "blob" or "about") return;
+                // Explicit MIME for modules, including older installed WebView2 runtimes.
+                if (uri.Scheme == "https" && uri.Host == Host && uri.AbsolutePath.StartsWith("/app/modules/") && uri.AbsolutePath.EndsWith(".mjs")) {
+                    var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "web")) + Path.DirectorySeparatorChar;
+                    var file = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
+                    if (file.StartsWith(root, StringComparison.OrdinalIgnoreCase) && File.Exists(file))
+                        e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(File.ReadAllBytes(file)), 200, "OK", "Content-Type: text/javascript; charset=utf-8\r\nX-Content-Type-Options: nosniff");
+                    else e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(), 404, "Not Found", "Content-Type: text/plain");
+                    return;
+                }
                 if (uri.Scheme == "https" && (uri.Host == Host || uri.Host == "carimarshow-native.vercel.app" || uri.Host == "image.tmdb.org")) return;
                 e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(), 403, "Blocked", "Content-Type: text/plain");
             };

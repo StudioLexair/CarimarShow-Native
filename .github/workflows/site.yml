@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['public/**', 'api/**', 'vercel.json', 'package.json', '.github/workflows/site.yml']
+    paths: ['public/**', 'api/**', 'lib/**', 'scripts/check.mjs', 'tests/unit.mjs', 'vercel.json', 'package.json', '.github/workflows/site.yml']
 permissions:
   contents: read
 jobs:
@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm run check
+      - run: npm run check && npm test
       - name: Deploy production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

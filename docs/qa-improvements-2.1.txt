@@ -1,0 +1,8 @@
+PASS context: search → detail/cast → person → filmography → title → back; query/type/tab/scroll
+PASS order: persistent dedupe, groups/years, two contacts in order, encoded message, no deletion
+PASS organization: manual reorder and persistent title sort
+PASS settings: actual stats, exact contacts, original logo, mobile overflow false
+PASS IndexedDB: expiry removes stale data; LRU ≤100; oversized automatic/explicit writes rejected without deletion
+PASS injected failures: valid zero ≠ invalid response/local fallback
+PASS no JS errors
+PASS IDB v2→v3: preserve dated download/pinned image; discard undated automatic cache

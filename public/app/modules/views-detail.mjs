@@ -1,0 +1,128 @@
+import { kind } from "./core-model.mjs";
+import { getDetail } from "./services-details.mjs";
+import { state } from "./core-state.mjs";
+import { logVisit } from "./services-library.mjs";
+import {
+  trailerList,
+  keyOf,
+  esc,
+  title,
+  rating,
+  year,
+  duration,
+  statusName,
+} from "./core-model.mjs";
+import {
+  setView,
+  trailerLink,
+  offlineNote,
+  section,
+  cast,
+  empty,
+  cards,
+} from "./ui-components.mjs";
+import { image, hydrate } from "./ui-images.mjs";
+import { icon } from "./ui-icons.mjs";
+import { $ } from "./ui-dom.mjs";
+import { api } from "./services-api.mjs";
+export async function detail(type, id, rev, initialTab = "description") {
+  if (!["movie", "tv"].includes(type) || !/^\d+$/.test(id))
+    throw Error("Ficha no válida");
+  const d = await getDetail(type, id);
+  if (rev !== state.routeRevision) return;
+  logVisit(d);
+  const trailers = trailerList(d),
+    selected = ["description", "cast", "trailers", "similar"].includes(
+      initialTab,
+    )
+      ? initialTab
+      : "description";
+  setView(
+    `<article class="detail-page"><div class="detail-layout"><div><div class="detail-visual">${image(d.backdrop_path || d.poster_path, d.backdrop_path ? "w780" : "w342", "", "detail-image")}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
+      d.genres?.length
+        ? " · " +
+          d.genres
+            .slice(0, 3)
+            .map((g) => esc(g.name))
+            .join(" · ")
+        : ""
+    }</p><div class="detail-actions">${trailers.length ? trailerLink(d, d) : '<button class="primary" ' + (d._videoQueryFailed ? "data-retry" : "disabled") + ' title="Estado del tráiler">' + icon("play") + (d._videoQueryFailed ? "Tráiler no consultado: reintentar" : "Tráiler no disponible") + "</button>"}<button class="square-button" data-save="${keyOf(d)}" aria-label="Añadir a Mi lista">${icon("plus")}</button><button class="square-button" data-download="${keyOf(d)}" aria-label="Guardar ficha offline" title="Guardar ficha offline">${icon(state.downloadMap.has(keyOf(d)) ? "check" : "download")}</button></div></div></div><section><div class="detail-tabs" role="tablist">${[
+      ["description", "Descripción"],
+      ["cast", "Reparto"],
+      ["trailers", "Tráileres"],
+      ["similar", "Similares"],
+    ]
+      .map(
+        ([k, v]) =>
+          `<button role="tab" data-detail-tab="${k}" aria-selected="${k === selected}" class="${k === selected ? "active" : ""}">${v}</button>`,
+      )
+      .join(
+        "",
+      )}</div><div id="detailContent" role="tabpanel"></div></section></div></article>`,
+  );
+  let tabRevision = 0;
+  async function show(tab) {
+    const seq = ++tabRevision;
+    document.querySelectorAll("[data-detail-tab]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.detailTab === tab);
+      b.setAttribute("aria-selected", String(b.dataset.detailTab === tab));
+    });
+    const c = $("#detailContent");
+    if (!c) return;
+    if (tab === "description") {
+      const site =
+        d.homepage && /^https?:\/\//i.test(d.homepage) ? d.homepage : null;
+      c.innerHTML =
+        offlineNote(d._offline ? d : null) +
+        `<p class="description">${esc(d.overview || "No hay sinopsis disponible en español para este título.")}</p>${section("Reparto principal")}${d.credits?.cast?.length ? `<div class="cast-rail">${d.credits.cast.slice(0, 8).map(cast).join("")}</div>` : '<p class="muted tiny">El reparto no está disponible en esta ficha.</p>'}<dl class="info-grid"><div><dt>Idioma original</dt><dd>${esc(d.original_language || "No informado")}</dd></div><div><dt>Estado</dt><dd>${esc(statusName(d.status))}</dd></div>${type === "tv" ? `<div><dt>Temporadas</dt><dd>${Number.isFinite(d.number_of_seasons) ? d.number_of_seasons : "No informado"}</dd></div><div><dt>Episodios</dt><dd>${Number.isFinite(d.number_of_episodes) ? d.number_of_episodes : "No informado"}</dd></div>` : ""}${site ? `<div><dt>Sitio oficial</dt><dd><a class="cyan" href="${esc(site)}" target="_blank" rel="noopener">Visitar ${icon("external")}</a></dd></div>` : ""}</dl>`;
+    } else if (tab === "cast") {
+      c.innerHTML = d.credits?.cast?.length
+        ? `<div class="grid">${d.credits.cast.map((p) => `<a class="person-card" href="#person/${p.id}"><div class="poster-box">${image(p.profile_path, "w185", p.name)}</div><strong>${esc(p.name)}</strong><small>${esc(p.character)}</small></a>`).join("")}</div>`
+        : empty(
+            "Reparto no disponible",
+            "Consulta esta ficha con conexión.",
+            "people",
+          );
+    } else if (tab === "trailers") {
+      c.innerHTML = trailers.length
+        ? `<div class="trailer-list">${trailers.map((v) => `<a class="trailer-item" href="https://www.youtube.com/watch?v=${esc(v.key)}" target="_blank" rel="noopener">${icon("play")}<span>${esc(v.name)}<small class="muted" style="display:block">YouTube · ${esc(v.iso_639_1 || "")}</small></span>${icon("external")}</a>`).join("")}</div><p class="muted tiny" style="margin-top:15px">Se abren fuera de la aplicación. Necesitan conexión.</p>`
+        : empty(
+            d._videoQueryFailed
+              ? "No se pudieron consultar los tráileres"
+              : "No hay tráiler disponible",
+            d._videoQueryFailed
+              ? "Falló la conexión. Esto no significa que el título no tenga tráiler. Vuelve a consultar la ficha."
+              : "No hay un tráiler de YouTube de este título en los datos disponibles.",
+            "play",
+          );
+    } else {
+      c.innerHTML =
+        '<div class="loading-state">Consultando títulos similares…</div>';
+      try {
+        const r = await api(`${type}/${id}/similar`);
+        if (rev !== state.routeRevision || seq !== tabRevision) return;
+        const items = (r.results || []).map((m) => ({
+          ...m,
+          media_type: type,
+        }));
+        c.innerHTML =
+          offlineNote(r._offline ? r : null) +
+          (items.length
+            ? cards(items)
+            : empty(
+                "No hay similares disponibles",
+                "TMDB no devolvió títulos similares.",
+                "movie",
+              ));
+      } catch (e) {
+        if (rev !== state.routeRevision || seq !== tabRevision) return;
+        c.innerHTML = empty("Similares no guardados", e.message, "offline");
+      }
+    }
+    hydrate();
+  }
+  document
+    .querySelectorAll("[data-detail-tab]")
+    .forEach((b) => (b.onclick = () => show(b.dataset.detailTab)));
+  await show(selected);
+}

@@ -1,0 +1,61 @@
+name: QA Web and Android 16
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm run check && npm test
+      - run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - name: Browser assertions on this checkout with real API
+        env:
+          BASE: http://localhost:8083
+          PORT: 8083
+        run: |
+          node scripts/dev.mjs > /tmp/carimarshow-web.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER' EXIT
+          for i in $(seq 1 20); do curl -fsS "$BASE/app/" >/dev/null && break || sleep 1; done
+          node tests/improvements.cjs
+  android-16:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          working-directory: android
+          script: gradle connectedDebugAndroidTest --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android16-test-results
+          path: |
+            android/app/build/reports/androidTests/
+            android/app/build/outputs/androidTest-results/

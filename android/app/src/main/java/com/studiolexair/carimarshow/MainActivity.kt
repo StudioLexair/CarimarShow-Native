@@ -47,7 +47,12 @@ class MainActivity : Activity() {
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? {
                 val uri = req.url
-                if (uri.scheme == "https" && uri.host == localHost) return loader.shouldInterceptRequest(uri)
+                if (uri.scheme == "https" && uri.host == localHost) {
+                    val response = loader.shouldInterceptRequest(uri)
+                    // Android's MIME registry can omit .mjs: ES modules require a JavaScript MIME.
+                    if (uri.path?.endsWith(".mjs") == true) response?.mimeType = "text/javascript"
+                    return response
+                }
                 if (uri.scheme == "https" && uri.host in remoteHosts) return null
                 if (uri.scheme in setOf("data", "blob", "about")) return null
                 return WebResourceResponse("text/plain", "UTF-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(ByteArray(0)))
