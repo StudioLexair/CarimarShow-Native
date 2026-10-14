@@ -40,7 +40,11 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
           unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/index.html"
           unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/catalog-snapshot.json"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/modules/views-home.mjs"
           unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/modules/services-orders.mjs"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/modules/ui-orders.mjs"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/modules/services-platform.mjs"
+          unzip -l android/app/build/outputs/apk/release/app-release.apk | grep "assets/app/styles.css"
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts

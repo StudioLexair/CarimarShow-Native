@@ -3,7 +3,7 @@ import { sheet, closeSheet } from "./ui-sheet.mjs";
 import { $, toast } from "./ui-dom.mjs";
 import { state } from "./core-state.mjs";
 export async function share(m, personId) {
-  const url = `https://carimarshow-native.vercel.app/app/#${personId ? "person/" + personId : "detail/" + kind(m) + "/" + m.id}`,
+  const url = `https://carimarshow.vercel.app/app/#${personId ? "person/" + personId : "detail/" + kind(m) + "/" + m.id}`,
     t = personId ? "Persona en CarimarShow" : title(m);
   try {
     if (navigator.share) {

@@ -8,6 +8,12 @@ const BASE = process.env.BASE || "http://localhost:8083";
     p = await ctx.newPage(),
     errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
+  await p.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (data) => { window.__sharedPayload = data; },
+    });
+  });
   const seed = await (
     await ctx.request.get(BASE + "/app/catalog-snapshot.json")
   ).json();
@@ -27,6 +33,13 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await p.locator('[data-detail-tab="cast"]').click();
   await p.locator("#detailContent .person-card").first().click();
   await p.locator(".actor-title").waitFor();
+  const personId = await p.locator("[data-share-person]").getAttribute("data-share-person");
+  await p.locator("[data-share-person]").click();
+  await p.waitForFunction(() => window.__sharedPayload?.url);
+  const sharedPersonUrl = await p.evaluate(() => window.__sharedPayload.url);
+  assert.equal(new URL(sharedPersonUrl).origin, "https://carimarshow.vercel.app");
+  assert.equal(new URL(sharedPersonUrl).hash, `#person/${personId}`);
+  await p.evaluate(() => { window.__sharedPayload = null; });
   await p.locator(".actor-actions a").click();
   await p.locator(".page-head").waitFor();
   await p.locator("#view .poster-link").first().click();
@@ -50,6 +63,16 @@ const BASE = process.env.BASE || "http://localhost:8083";
   console.log(
     "PASS context: search → detail/cast → person → filmography → title → back; query/type/tab/scroll",
   );
+  await p.locator("#searchResults .poster-link").first().click();
+  await p.locator(".detail-heading").waitFor();
+  await p.locator(".floating-tools [data-share]").click();
+  await p.waitForFunction(() => window.__sharedPayload?.url);
+  const sharedTitleUrl = await p.evaluate(() => window.__sharedPayload.url);
+  assert.equal(new URL(sharedTitleUrl).origin, "https://carimarshow.vercel.app");
+  assert.match(new URL(sharedTitleUrl).hash, /^#detail\/(movie|tv)\/\d+$/);
+  console.log("PASS shared title ficha uses the active short domain and correct deep link");
+  await p.goto(`${BASE}/app/#explore`);
+  await p.locator("#query").waitFor();
   const selected = [
     seed.catalog.find((m) => m.media_type === "movie"),
     seed.catalog.find((m) => m.media_type === "tv"),
@@ -62,19 +85,28 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await p.locator("#query").waitFor();
   await p.locator('a[data-nav="list"]').click();
   await p.locator("#shareOrder").click();
-  const links = await p
+  const originalLinks = await p
     .locator("[data-order-contact]")
     .evaluateAll((nodes) => nodes.map((n) => n.href));
   assert.deepEqual(
-    links.map((u) => new URL(u).pathname),
+    originalLinks.map((u) => new URL(u).pathname),
     ["/5353324928", "/5378660658"],
   );
   const text = await p.inputValue("#orderMessage");
+  assert.equal(await p.locator("#orderMessage").getAttribute("readonly"), null);
   assert.match(text, /Películas:/);
   assert.match(text, /Series:/);
   assert.match(text, /Total de títulos: 2/);
-  for (const href of links)
+  assert.doesNotMatch(text, /Quisiera consultar la disponibilidad y las condiciones del pedido/);
+  for (const href of originalLinks)
     assert.equal(new URL(href).searchParams.get("text"), text);
+  const editedText = `${text}\nNota personalizada: prefiero que me escriban primero.`;
+  await p.fill("#orderMessage", editedText);
+  const editedLinks = await p
+    .locator("[data-order-contact]")
+    .evaluateAll((nodes) => nodes.map((n) => n.href));
+  for (const href of editedLinks)
+    assert.equal(new URL(href).searchParams.get("text"), editedText);
   await p.locator("[data-close]").first().click();
   await p.reload();
   await p.locator("#shareOrder").waitFor();

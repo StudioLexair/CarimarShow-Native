@@ -44,6 +44,25 @@ const BASE = process.env.BASE || "http://localhost:8083";
       trendBounds[1].top >= trendBounds[0].bottom,
       "Daily and weekly trends remain stacked at desktop widths",
     );
+    const homeSectionBounds = await page.locator(".home-sections > section").evaluateAll((sections) =>
+      sections.map((section) => {
+        const rect = section.getBoundingClientRect();
+        return {
+          title: section.querySelector(".section-head h2")?.textContent.trim(),
+          top: rect.top + scrollY,
+          bottom: rect.bottom + scrollY,
+        };
+      }),
+    );
+    assert.deepEqual(
+      homeSectionBounds.map((section) => section.title),
+      ["Tendencias de hoy", "Tendencias de esta semana", "Nuevos lanzamientos", "Series para descubrir", "Tu lista"],
+    );
+    for (let i = 1; i < homeSectionBounds.length; i++)
+      assert.ok(
+        homeSectionBounds[i].top >= homeSectionBounds[i - 1].bottom,
+        `Home section “${homeSectionBounds[i].title}” must appear below “${homeSectionBounds[i - 1].title}” on desktop`,
+      );
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(
       (await page.locator('[data-home-trends="day"] .section-head h2').innerText()).trim(),
@@ -86,7 +105,27 @@ const BASE = process.env.BASE || "http://localhost:8083";
       .locator("#homeTrendWeekResults .poster-link")
       .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     assert.ok(weekHrefs.length > 0, "TMDB weekly trending titles should render below the daily feed");
-    console.log("PASS home shows both real TMDB trend feeds vertically, day first, with working browse links");
+    const heroDots = page.locator(".slider-dots [data-hero]");
+    const heroCount = await heroDots.count();
+    assert.ok(heroCount >= 3 && heroCount <= 6, `TMDB hero should expose three to six unique slides, got ${heroCount}`);
+    const heroLinks = [];
+    for (let i = 0; i < heroCount; i++) {
+      await page.locator(`[data-hero="${i}"]`).evaluate((button) => button.click());
+      heroLinks.push(await page.locator(".hero h1 a").getAttribute("href"));
+    }
+    assert.equal(new Set(heroLinks).size, heroCount, "Hero carousel entries should be unique");
+    assert.ok(
+      heroLinks.every((href) => todayHrefs.includes(href) || weekHrefs.includes(href)),
+      "Each hero entry should come from today's or this week's real TMDB feed",
+    );
+    await page.locator('[data-hero="0"]').evaluate((button) => button.click());
+    const firstHero = await page.locator('.slider-dots [aria-pressed="true"]').getAttribute("data-hero");
+    await page.waitForFunction(
+      (initial) => document.querySelector('.slider-dots [aria-pressed="true"]')?.dataset.hero !== initial,
+      firstHero,
+      { timeout: 9500 },
+    );
+    console.log(`PASS TMDB hero auto-advances through ${heroCount} slides; all home sections stack on desktop`);
 
     await page.goto(`${BASE}/app/#browse/trending/day`);
     await page.locator("#browseCards .card").first().waitFor();

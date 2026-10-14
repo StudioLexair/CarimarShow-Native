@@ -51,7 +51,7 @@ test("pedido: deduplicación por tipo/id, película y serie, año y total", () =
   assert.match(m, /Películas:\n1\. Película & prueba \(2024\)/);
   assert.match(m, /Series:\n1\. Serie prueba \(2022\)/);
   assert.match(m, /Total de títulos: 2/);
-  assert.match(m, /consultar la disponibilidad/);
+  assert.doesNotMatch(m, /Quisiera consultar la disponibilidad y las condiciones del pedido/);
   assert.doesNotMatch(m, /undefined|null|confirmado|Duplicada|Actor/);
   assert.equal(orderMessage([]), "");
 });
@@ -63,6 +63,11 @@ test("pedido: dos WhatsApp propios, orden exacto y codificación reversible", ()
   );
   for (const c of choices)
     assert.equal(new URL(c.url).searchParams.get("text"), orderMessage(items));
+  const edited = "Mensaje editado por la persona usuaria";
+  assert.deepEqual(
+    whatsappChoices(items, edited).map((c) => new URL(c.url).searchParams.get("text")),
+    [edited, edited],
+  );
   assert.equal(items.length, 4);
 });
 test("tráiler: solo YouTube, tipo Trailer y clave válida; sin teasers ajenos", () => {
@@ -380,9 +385,35 @@ test("proxy: dominio corto y nativas permitidos, origen ajeno rechazado", async 
 
 
 test("native retirado: proxy y allowlists nativas usan únicamente el dominio corto", () => {
-  for (const file of ["public/app/config.js", "android/app/src/main/java/com/studiolexair/carimarshow/MainActivity.kt", "windows/MainWindow.xaml.cs"]) {
+  for (const file of ["public/app/config.js", "android/app/src/main/java/com/studiolexair/carimarshow/MainActivity.kt", "windows/MainWindow.xaml.cs", "public/app/modules/services-platform.mjs"]) {
     const source = fs.readFileSync(file, "utf8");
     assert.ok(source.includes("carimarshow.vercel.app"), file);
     assert.ok(!source.includes("carimarshow-native.vercel.app"), file);
   }
+});
+
+test("landing Android: descarga el APK de latest directamente en la pestaña actual", () => {
+  const html = fs.readFileSync("public/index.html", "utf8");
+  const fileIndex = html.indexOf("CarimarShow-Android.apk");
+  assert.ok(fileIndex >= 0, "Debe existir el enlace Descargar APK");
+  const start = html.lastIndexOf("<a ", fileIndex);
+  const end = html.indexOf(">", fileIndex);
+  const tag = html.slice(start, end + 1);
+  const href = tag.split('href="')[1]?.split('"')[0];
+  assert.equal(
+    href,
+    "https://github.com/StudioLexair/CarimarShow-Native/releases/latest/download/CarimarShow-Android.apk",
+  );
+  assert.ok(!tag.includes("target="), "No debe abrir una pestaña nueva");
+});
+
+test("candidato 2.2.2: versiones de Android, Windows y web están alineadas", () => {
+  assert.equal(JSON.parse(fs.readFileSync("package.json", "utf8")).version, "2.2.2");
+  for (const [file, marker] of [
+    ["public/app/config.js", "version:'2.2.2'"],
+    ["android/app/build.gradle.kts", 'versionName = "2.2.2"'],
+    ["windows/CarimarShow.csproj", "<Version>2.2.2</Version>"],
+    ["windows/installer.iss", '#define MyAppVersion "2.2.2"'],
+  ])
+    assert.ok(fs.readFileSync(file, "utf8").includes(marker), file);
 });

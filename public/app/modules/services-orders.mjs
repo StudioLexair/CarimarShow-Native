@@ -33,15 +33,10 @@ export function orderMessage(items) {
     });
     lines.push("");
   }
-  lines.push(
-    `Total de títulos: ${list.length}.`,
-    "",
-    "Quisiera consultar la disponibilidad y las condiciones del pedido.",
-  );
+  lines.push(`Total de títulos: ${list.length}.`);
   return lines.join("\n");
 }
-export function whatsappChoices(items) {
-  const message = orderMessage(items);
+export function whatsappChoices(items, message = orderMessage(items)) {
   return BUSINESS.contacts.map((c) => ({
     ...c,
     url: "https://wa.me/" + c.digits + "?text=" + encodeURIComponent(message),

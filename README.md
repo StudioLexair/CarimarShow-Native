@@ -147,9 +147,14 @@ https://carimarshow.vercel.app/ es la única dirección pública principal; Andr
 
 ## Correcciones de comentarios del cliente — 2.2.2
 
+[Notas de versión y estado del candidato](docs/MEJORAS-2.2.2.md).
+
 - Las fichas muestran el título original de TMDB cuando difiere del título localizado.
-- Inicio elige sus destacados del feed diario actual de TMDB; tendencias Hoy/Semana están disponibles en portada y en Explorar.
+- Inicio apila sus secciones también en escritorio —incluidas Nuevos lanzamientos y Series para descubrir— y usa hasta seis destacados únicos de los feeds reales de TMDB; el carrusel avanza automáticamente cada seis segundos y respeta movimiento reducido.
+- Al compartir una lista, el texto es editable y se elimina la frase fija; WhatsApp, Copiar y Compartir usan la edición actual.
+- Los enlaces compartidos de títulos y personas usan el dominio corto `carimarshow.vercel.app`.
 - Android aplica insets seguros sobre la barra de estado, recorte y navegación del sistema para que Volver y la barra inferior no queden tapados.
+- La web principal descarga el APK de la última release desde un enlace directo en la pestaña actual. El navegador Android sigue mostrando su interfaz de descarga del sistema.
 - Windows añade un smoke test del instalador y del arranque offline/WebView2 en CI. Esto no sustituye la confirmación en el PC del cliente; si el instalador vuelve a fallar, se necesita captura del mensaje y versión de Windows.
 
 El análisis completo de la conversación y los archivos de voz se conserva localmente, fuera del repositorio público, para no republicar datos privados del chat.
