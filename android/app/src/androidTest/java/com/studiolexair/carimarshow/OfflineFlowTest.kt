@@ -67,7 +67,7 @@ class OfflineFlowTest {
         try {
             waitFor("!!document.querySelector('.hero h1') && document.querySelector('#splash').hidden")
             waitFor("navigator.onLine===false")
-            assertTrue(js("document.querySelector('.hero h1').textContent").contains("John Wick"))
+            assertEquals("true", js("document.querySelector('.hero h1 a')?.getAttribute('href')?.startsWith('#detail/')===true"))
             assertEquals("\"https://carimarshow.vercel.app\"", js("window.CARIMAR_CONFIG.apiOrigin"))
             js("location.hash='#detail/movie/693134'")
             waitFor("!!document.querySelector('.detail-actions a[href*=youtube]')")
