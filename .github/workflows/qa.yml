@@ -71,18 +71,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           working-directory: android
-          script: |
-            if [ "$NAVIGATION_MODE" = "buttons" ]; then
-              adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton || true
-              adb shell cmd overlay disable com.android.internal.systemui.navbar.gestural || true
-              adb shell settings put secure navigation_mode 0
-            else
-              adb shell cmd overlay enable com.android.internal.systemui.navbar.gestural || true
-              adb shell cmd overlay disable com.android.internal.systemui.navbar.threebutton || true
-              adb shell settings put secure navigation_mode 2
-            fi
-            adb shell settings get secure navigation_mode
-            gradle connectedDebugAndroidTest --no-daemon
+          script: bash ../scripts/android-insets-ci.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
