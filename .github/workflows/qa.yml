@@ -42,11 +42,14 @@ jobs:
         include:
           - api_level: 29
             navigation_mode: buttons
+            test_scope: insets
           - api_level: 36
             navigation_mode: gestures
+            test_scope: full
     runs-on: ubuntu-latest
     env:
       NAVIGATION_MODE: ${{ matrix.navigation_mode }}
+      TEST_SCOPE: ${{ matrix.test_scope }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
