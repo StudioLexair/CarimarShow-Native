@@ -32,6 +32,7 @@ export async function browse(
   if (mode === "trending") {
     period = period === "week" ? "week" : "day";
     path = `trending/all/${period}`;
+    label = period === "week" ? "Tendencias de esta semana" : "Tendencias de hoy";
   }
   if (genreId) {
     path = "discover/" + mode;
@@ -47,13 +48,9 @@ export async function browse(
       (["movie", "tv", "person"].includes(mode) ? mode : "movie"),
   }));
   remember(items);
-  const periodTabs =
-    mode === "trending"
-      ? `<nav class="segmented range-filter" role="tablist" aria-label="Periodo de tendencias"><a role="tab" data-trend-period="day" aria-selected="${period === "day"}" class="${period === "day" ? "active" : ""}" href="#browse/trending/day">Hoy</a><a role="tab" data-trend-period="week" aria-selected="${period === "week"}" class="${period === "week" ? "active" : ""}" href="#browse/trending/week">Esta semana</a></nav>`
-      : "";
   if (page === 1)
     setView(
-      `${head(label, "#explore")}${periodTabs}${offlineNote(d._offline ? d : null)}<div id="browseCards">${items.length ? cards(items) : empty("No hay títulos guardados de esta categoría", "Consulta con conexión para ampliar el catálogo.", "movie")}</div><div class="more-wrap"><button class="secondary" id="loadMore">Cargar más</button></div>`,
+      `${head(label, "#explore")}${offlineNote(d._offline ? d : null)}<div id="browseCards">${items.length ? cards(items) : empty("No hay títulos guardados de esta categoría", "Consulta con conexión para ampliar el catálogo.", "movie")}</div><div class="more-wrap"><button class="secondary" id="loadMore">Cargar más</button></div>`,
     );
   else {
     $("#browseCards").insertAdjacentHTML("beforeend", cards(items));

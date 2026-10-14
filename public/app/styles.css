@@ -5,10 +5,7 @@
 
 /* Safe areas and readable navigation on phones with status/system bars. */
 .app-header{padding-top:calc(24px + env(safe-area-inset-top,0px))}
-.segmented a{flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;padding:10px;font-size:12px;color:#cde0e8}
-.segmented a.active{background:var(--cyan);color:#032438;font-weight:700}
 .home-trend-section{grid-column:1 / -1;min-width:0}
-.range-filter{max-width:360px;margin:0 0 18px}
 .floating-tools{top:calc(14px + env(safe-area-inset-top,0px))}
 .floating-tools .circle-button{background:#031522d9;border:1px solid #ffffff35;box-shadow:0 2px 12px #0005}
 .info-grid .original-title dd{color:#d9edf8;font-weight:600;overflow-wrap:anywhere}

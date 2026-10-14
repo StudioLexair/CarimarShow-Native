@@ -89,13 +89,18 @@ const BASE = process.env.BASE || "http://localhost:8083";
     console.log("PASS home shows both real TMDB trend feeds vertically, day first, with working browse links");
 
     await page.goto(`${BASE}/app/#browse/trending/day`);
-    await page.locator('[data-trend-period="day"][aria-selected="true"]').waitFor();
     await page.locator("#browseCards .card").first().waitFor();
-    await page.locator('[data-trend-period="week"]').click();
-    await page.waitForURL(/#browse\/trending\/week$/);
-    await page.locator('[data-trend-period="week"][aria-selected="true"]').waitFor();
+    assert.equal(await page.locator("[data-trend-period]").count(), 0, "Browse trend feeds also avoid period-toggle buttons");
+    assert.equal((await page.locator(".page-head .back").innerText()).trim(), "Tendencias de hoy");
+    const dailyBrowseCount = await page.locator("#browseCards .card").count();
+    assert.ok(dailyBrowseCount > 0, "Daily browse route loads live TMDB results");
+
+    await page.goto(`${BASE}/app/#browse/trending/week`);
     await page.locator("#browseCards .card").first().waitFor();
-    console.log("PASS browse retains both daily and weekly TMDB trending options");
+    assert.equal((await page.locator(".page-head .back").innerText()).trim(), "Tendencias de esta semana");
+    const weeklyBrowseCount = await page.locator("#browseCards .card").count();
+    assert.ok(weeklyBrowseCount > 0, "Weekly browse route loads its own TMDB results");
+    console.log("PASS separate daily/weekly browse routes work without trend period buttons");
 
     await page.goto(`${BASE}/app/#detail/movie/693134`);
     await page.locator(".detail-heading").waitFor();
