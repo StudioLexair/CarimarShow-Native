@@ -12,17 +12,16 @@ const BASE = process.env.BASE || "http://localhost:8083";
     await page.goto(`${BASE}/app/#home`);
     await page.locator(".home-trend-filter").waitFor({ timeout: 30000 });
     await page.locator(".hero h1 a").waitFor({ timeout: 30000 });
-    await page.waitForFunction(() => {
-      const image = document.querySelector(".hero-image");
-      return image && image.complete && image.naturalWidth > 0;
-    }, { timeout: 30000 });
     const heroImageKey = await page.locator(".hero-image").getAttribute("data-image");
-    const cachedHero = await page.evaluate(async (key) => {
+    const cacheHandle = await page.waitForFunction(async (key) => {
+      const image = document.querySelector(".hero-image");
+      if (!image || image.dataset.image !== key || !image.complete || image.naturalWidth < 2 || !image.src.startsWith("blob:")) return 0;
       const { dbGet } = await import("./modules/storage-cache.mjs");
       const blob = await dbGet("images", key);
       return blob instanceof Blob ? blob.size : 0;
-    }, heroImageKey);
-    assert.ok(cachedHero > 0, "Visible live TMDB artwork is fetched and cached automatically");
+    }, heroImageKey, { timeout: 30000 });
+    const cachedHero = await cacheHandle.jsonValue();
+    assert.ok(cachedHero > 0, "Live TMDB artwork is fully loaded and cached automatically");
 
     const heroHref = await page.locator(".hero h1 a").getAttribute("href");
     assert.ok(heroHref.startsWith("#detail/"));
