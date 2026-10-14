@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.2.2
+# CarimarShow Native · 2.2.3
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -158,3 +158,7 @@ https://carimarshow.vercel.app/ es la única dirección pública principal; Andr
 - Windows añade un smoke test del instalador y del arranque offline/WebView2 en CI. Esto no sustituye la confirmación en el PC del cliente; si el instalador vuelve a fallar, se necesita captura del mensaje y versión de Windows.
 
 El análisis completo de la conversación y los archivos de voz se conserva localmente, fuera del repositorio público, para no republicar datos privados del chat.
+
+## Navegación Android adaptable — 2.2.3
+
+[Notas](docs/MEJORAS-2.2.3.md): ajuste edge-to-edge para aplicar una sola vez los insets del sistema y probar tanto la navegación Android de tres botones como la navegación por gestos.

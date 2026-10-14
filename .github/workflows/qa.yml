@@ -34,9 +34,19 @@ jobs:
           node tests/polish.cjs
           node tests/profile-genres.cjs
           node tests/client-feedback.cjs
-  android-16:
+  android-insets:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'web' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api_level: 29
+            navigation_mode: buttons
+          - api_level: 36
+            navigation_mode: gestures
     runs-on: ubuntu-latest
+    env:
+      NAVIGATION_MODE: ${{ matrix.navigation_mode }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -56,16 +66,27 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: ${{ matrix.api_level }}
           target: google_apis
           arch: x86_64
           disable-animations: true
           working-directory: android
-          script: gradle connectedDebugAndroidTest --no-daemon
+          script: |
+            if [ "$NAVIGATION_MODE" = "buttons" ]; then
+              adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton || true
+              adb shell cmd overlay disable com.android.internal.systemui.navbar.gestural || true
+              adb shell settings put secure navigation_mode 0
+            else
+              adb shell cmd overlay enable com.android.internal.systemui.navbar.gestural || true
+              adb shell cmd overlay disable com.android.internal.systemui.navbar.threebutton || true
+              adb shell settings put secure navigation_mode 2
+            fi
+            adb shell settings get secure navigation_mode
+            gradle connectedDebugAndroidTest --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Android16-test-results
+          name: Android-insets-api${{ matrix.api_level }}-${{ matrix.navigation_mode }}
           path: |
             android/app/build/reports/androidTests/
             android/app/build/outputs/androidTest-results/

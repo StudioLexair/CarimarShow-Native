@@ -9,7 +9,9 @@ import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.webkit.*
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.WebViewAssetLoader
 import java.io.ByteArrayInputStream
@@ -24,6 +26,9 @@ class MainActivity : Activity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
+        // Usar el mismo modelo edge-to-edge en Android 10-16; después aplicamos
+        // cada inset una sola vez al contenedor raíz, también con navegación de 3 botones.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         // Mantener el WebView dentro del área segura. Android 15 aplica edge-to-edge
         // y las barras del sistema podían cubrir el botón Volver o la navegación inferior.
         val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(3, 21, 34)) }
@@ -33,12 +38,16 @@ class MainActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
         ))
         setContentView(root)
+        val safeTypes = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val safe = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
-            )
+            val safe = insets.getInsets(safeTypes)
             view.setPadding(safe.left, safe.top, safe.right, safe.bottom)
-            insets // Conservar los insets del teclado (IME) para los campos de búsqueda.
+            // Ya aplicamos las barras y el recorte al root: no volver a pasarlos al
+            // WebView. Los insets del teclado (IME) se conservan para los campos.
+            WindowInsetsCompat.Builder(insets)
+                .setInsets(safeTypes, Insets.NONE)
+                .setInsetsIgnoringVisibility(safeTypes, Insets.NONE)
+                .build()
         }
         ViewCompat.requestApplyInsets(root)
         web.settings.apply {

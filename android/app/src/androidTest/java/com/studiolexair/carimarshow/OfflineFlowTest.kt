@@ -7,6 +7,7 @@ import android.net.Uri
 import android.net.ConnectivityManager
 import android.content.Context
 import android.view.ViewGroup
+import android.util.DisplayMetrics
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -106,14 +107,20 @@ class OfflineFlowTest {
                     val root = activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as FrameLayout
                     val insets = ViewCompat.getRootWindowInsets(root)
                     if (root.width > 0 && root.height > 0 && insets != null) {
-                        val bars = insets.getInsets(
-                            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
-                        )
+                        val safeTypes = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                        val bars = insets.getInsets(safeTypes)
                         val web = root.getChildAt(0) as WebView
-                        assertTrue("WebView begins below the status-bar/cutout inset", web.top >= root.paddingTop)
-                        assertTrue("WebView ends above the navigation-bar inset", web.bottom <= root.height - root.paddingBottom)
-                        assertTrue("Top system-bar inset is applied to the root", root.paddingTop >= bars.top)
-                        assertTrue("Bottom system-bar inset is applied to the root", root.paddingBottom >= bars.bottom)
+                        @Suppress("DEPRECATION")
+                        val realMetrics = DisplayMetrics().also { activity.windowManager.defaultDisplay.getRealMetrics(it) }
+                        val tolerance = (2 * realMetrics.density).toInt()
+                        assertTrue(
+                            "Root must span the display before applying insets once: root=${root.height}, display=${realMetrics.heightPixels}",
+                            root.height >= realMetrics.heightPixels - tolerance,
+                        )
+                        assertEquals("Top system-bar inset is applied once", bars.top, root.paddingTop)
+                        assertEquals("Bottom system-bar inset is applied once", bars.bottom, root.paddingBottom)
+                        assertEquals("WebView begins after the top inset", root.paddingTop, web.top)
+                        assertEquals("WebView ends before the bottom inset", root.height - root.paddingBottom, web.bottom)
                         checked = true
                     }
                 }

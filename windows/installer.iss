@@ -1,4 +1,4 @@
-#define MyAppVersion "2.2.2"
+#define MyAppVersion "2.2.3"
 [Setup]
 AppId={{86940A02-EA6F-450C-9826-EE2A88494CB7}
 AppName=CarimarShow
