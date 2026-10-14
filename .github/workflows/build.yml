@@ -93,10 +93,21 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw "CarimarShow installer exited with $($setup.ExitCode)" }
           $exe = Join-Path $installDir 'CarimarShow.exe'
           if (!(Test-Path $exe) -or !(Test-Path (Join-Path $installDir 'web/app/index.html'))) { throw 'Installed offline payload is incomplete' }
+          $diagnosticFile = Join-Path $env:RUNNER_TEMP 'CarimarShow-startup-diagnostic.txt'
+          $env:CARIMARSHOW_STARTUP_LOG = $diagnosticFile
+          $startedAt = Get-Date
           $app = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 15
           $app.Refresh()
-          if ($app.HasExited) { throw 'Installed desktop app exited during WebView2 initialization' }
+          if ($app.HasExited) {
+            Write-Host "Desktop process exit code: $($app.ExitCode)"
+            if (Test-Path $diagnosticFile) { Write-Host 'Startup exception:'; Get-Content $diagnosticFile }
+            $events = Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $startedAt } -ErrorAction SilentlyContinue |
+              Where-Object { $_.ProviderName -in @('Application Error', '.NET Runtime', 'Windows Error Reporting') -and $_.Message -match 'CarimarShow|WebView2|CoreWebView2' } |
+              Select-Object -First 5
+            foreach ($event in $events) { Write-Host "$($event.ProviderName): $($event.Message.Substring(0, [Math]::Min(2000, $event.Message.Length)))" }
+            throw 'Installed desktop app exited during WebView2 initialization'
+          }
           if (!(Get-Process msedgewebview2 -ErrorAction SilentlyContinue)) { throw 'WebView2 renderer did not start' }
           Stop-Process -Id $app.Id -Force
           Write-Host 'PASS: installer completed; offline web payload and WebView2 app process started.'

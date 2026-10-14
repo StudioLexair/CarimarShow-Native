@@ -38,6 +38,10 @@ public partial class MainWindow : Window {
             };
             core.Navigate($"https://{Host}/app/index.html#home");
         } catch (Exception ex) {
+            var diagnosticPath = Environment.GetEnvironmentVariable("CARIMARSHOW_STARTUP_LOG");
+            if (!string.IsNullOrWhiteSpace(diagnosticPath)) {
+                try { File.WriteAllText(diagnosticPath, ex.ToString()); } catch { }
+            }
             MessageBox.Show("No se pudo iniciar CarimarShow. Instala Microsoft Edge WebView2 Runtime o vuelve a ejecutar el instalador completo.\n\n"+ex.Message, "CarimarShow", MessageBoxButton.OK, MessageBoxImage.Error);
             Close();
         }
