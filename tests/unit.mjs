@@ -392,19 +392,82 @@ test("native retirado: proxy y allowlists nativas usan únicamente el dominio co
   }
 });
 
-test("landing Android: descarga el APK de latest directamente en la pestaña actual", () => {
+test("landing Android: el botón usa la descarga del dominio propio en la pestaña actual", () => {
   const html = fs.readFileSync("public/index.html", "utf8");
-  const fileIndex = html.indexOf("CarimarShow-Android.apk");
-  assert.ok(fileIndex >= 0, "Debe existir el enlace Descargar APK");
-  const start = html.lastIndexOf("<a ", fileIndex);
-  const end = html.indexOf(">", fileIndex);
+  const buttonIndex = html.indexOf("Descargar APK");
+  assert.ok(buttonIndex >= 0, "Debe existir el enlace Descargar APK");
+  const start = html.lastIndexOf("<a ", buttonIndex);
+  const end = html.indexOf(">", buttonIndex);
   const tag = html.slice(start, end + 1);
   const href = tag.split('href="')[1]?.split('"')[0];
-  assert.equal(
-    href,
-    "https://github.com/StudioLexair/CarimarShow-Native/releases/latest/download/CarimarShow-Android.apk",
-  );
+  assert.equal(href, "/api/download-apk");
   assert.ok(!tag.includes("target="), "No debe abrir una pestaña nueva");
+});
+
+test("descarga Android: el dominio propio resuelve el asset firmado y salta la página de GitHub", async () => {
+  const { createHandler } = require("../api/download-apk.js");
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({ url, options });
+    if (calls.length === 1)
+      return {
+        status: 302,
+        ok: false,
+        headers: {
+          get: () =>
+            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.2/CarimarShow-Android.apk",
+        },
+      };
+    if (calls.length === 2)
+      return {
+        status: 302,
+        ok: false,
+        headers: {
+          get: () =>
+            "https://release-assets.githubusercontent.com/github-production-release-asset/file?signature=test",
+        },
+      };
+    return { status: 200, ok: true, headers: { get: () => null } };
+  };
+  const res = {
+    headers: {},
+    setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+    end(body) { this.body = body; },
+  };
+  await createHandler(fakeFetch)({ method: "GET" }, res);
+  assert.equal(res.statusCode, 302);
+  assert.equal(new URL(res.headers.location).hostname, "release-assets.githubusercontent.com");
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(({ options }) => options.method === "HEAD" && options.redirect === "manual"));
+  assert.equal(res.headers["cache-control"], "no-store");
+});
+
+test("descarga Android: rechaza métodos y redirecciones fuera de GitHub", async () => {
+  const { createHandler } = require("../api/download-apk.js");
+  let calls = 0;
+  const fakeFetch = async () => {
+    calls += 1;
+    return {
+      status: 302,
+      ok: false,
+      headers: { get: () => "https://evil.example/payload.apk" },
+    };
+  };
+  const makeResponse = () => ({
+    headers: {},
+    setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+    end(body) { this.body = body; },
+  });
+  const handler = createHandler(fakeFetch);
+  const methodRes = makeResponse();
+  await handler({ method: "POST" }, methodRes);
+  assert.equal(methodRes.statusCode, 405);
+  assert.equal(methodRes.headers.allow, "GET, HEAD");
+  assert.equal(calls, 0);
+  const redirectRes = makeResponse();
+  await handler({ method: "GET" }, redirectRes);
+  assert.equal(redirectRes.statusCode, 502);
+  assert.equal(calls, 1);
 });
 
 test("candidato 2.2.2: versiones de Android, Windows y web están alineadas", () => {
