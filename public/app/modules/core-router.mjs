@@ -116,7 +116,8 @@ export async function route() {
         rev,
         p[1] ? decodeURIComponent(p[1]) : context?.query || "",
       );
-    } else if (name === "browse") await browse(p[1], rev);
+    } else if (name === "browse")
+      await browse(p[1], rev, 1, null, "", p[2] || "day");
     else if (name === "genres") await genresPage(rev, p[1]);
     else if (name === "genre") {
       if (!["all", "movie", "tv"].includes(p[1]) || !/^\d+$/.test(p[2]))

@@ -31,6 +31,13 @@ export async function detail(type, id, rev, initialTab = "description") {
   const d = await getDetail(type, id);
   if (rev !== state.routeRevision) return;
   logVisit(d);
+  const originalTitle = type === "tv" ? d.original_name : d.original_title,
+    localizedTitle = String(d.title || d.name || ""),
+    originalTitleDiffers =
+      typeof originalTitle === "string" &&
+      originalTitle.trim() &&
+      originalTitle.normalize("NFKC").trim().toLocaleLowerCase() !==
+        localizedTitle.normalize("NFKC").trim().toLocaleLowerCase();
   const trailers = trailerList(d),
     selected = ["description", "cast", "trailers", "similar"].includes(
       initialTab,
@@ -74,7 +81,7 @@ export async function detail(type, id, rev, initialTab = "description") {
         d.homepage && /^https?:\/\//i.test(d.homepage) ? d.homepage : null;
       c.innerHTML =
         offlineNote(d._offline ? d : null) +
-        `<p class="description">${esc(d.overview || "No hay sinopsis disponible en español para este título.")}</p>${section("Reparto principal")}${d.credits?.cast?.length ? `<div class="cast-rail">${d.credits.cast.slice(0, 8).map(cast).join("")}</div>` : '<p class="muted tiny">El reparto no está disponible en esta ficha.</p>'}<dl class="info-grid"><div><dt>Idioma original</dt><dd>${esc(d.original_language || "No informado")}</dd></div><div><dt>Estado</dt><dd>${esc(statusName(d.status))}</dd></div>${type === "tv" ? `<div><dt>Temporadas</dt><dd>${Number.isFinite(d.number_of_seasons) ? d.number_of_seasons : "No informado"}</dd></div><div><dt>Episodios</dt><dd>${Number.isFinite(d.number_of_episodes) ? d.number_of_episodes : "No informado"}</dd></div>` : ""}${site ? `<div><dt>Sitio oficial</dt><dd><a class="cyan" href="${esc(site)}" target="_blank" rel="noopener">Visitar ${icon("external")}</a></dd></div>` : ""}</dl>`;
+        `<p class="description">${esc(d.overview || "No hay sinopsis disponible en español para este título.")}</p>${section("Reparto principal")}${d.credits?.cast?.length ? `<div class="cast-rail">${d.credits.cast.slice(0, 8).map(cast).join("")}</div>` : '<p class="muted tiny">El reparto no está disponible en esta ficha.</p>'}<dl class="info-grid">${originalTitleDiffers ? `<div class="original-title"><dt>Título original</dt><dd lang="${/^[a-z]{2}$/i.test(d.original_language || "") ? esc(d.original_language) : "en"}">${esc(originalTitle.trim())}</dd></div>` : ""}<div><dt>Idioma original</dt><dd>${esc(d.original_language || "No informado")}</dd></div><div><dt>Estado</dt><dd>${esc(statusName(d.status))}</dd></div>${type === "tv" ? `<div><dt>Temporadas</dt><dd>${Number.isFinite(d.number_of_seasons) ? d.number_of_seasons : "No informado"}</dd></div><div><dt>Episodios</dt><dd>${Number.isFinite(d.number_of_episodes) ? d.number_of_episodes : "No informado"}</dd></div>` : ""}${site ? `<div><dt>Sitio oficial</dt><dd><a class="cyan" href="${esc(site)}" target="_blank" rel="noopener">Visitar ${icon("external")}</a></dd></div>` : ""}</dl>`;
     } else if (tab === "cast") {
       c.innerHTML = d.credits?.cast?.length
         ? `<div class="grid">${d.credits.cast.map((p) => `<a class="person-card" href="#person/${p.id}"><div class="poster-box">${image(p.profile_path, "w185", p.name)}</div><strong>${esc(p.name)}</strong><small>${esc(p.character)}</small></a>`).join("")}</div>`

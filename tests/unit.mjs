@@ -379,7 +379,7 @@ test("proxy: dominio corto y nativas permitidos, origen ajeno rechazado", async 
 });
 
 
-test("2.2.1: proxy y allowlists nativas usan únicamente el dominio corto", () => {
+test("native retirado: proxy y allowlists nativas usan únicamente el dominio corto", () => {
   for (const file of ["public/app/config.js", "android/app/src/main/java/com/studiolexair/carimarshow/MainActivity.kt", "windows/MainWindow.xaml.cs"]) {
     const source = fs.readFileSync(file, "utf8");
     assert.ok(source.includes("carimarshow.vercel.app"), file);

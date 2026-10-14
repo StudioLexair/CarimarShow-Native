@@ -9,7 +9,7 @@ android {
         targetSdk = 35
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = (System.getenv("APP_BUILD_NUMBER") ?: "1").toInt()
-        versionName = "2.2.1"
+        versionName = "2.2.2"
     }
     signingConfigs {
         create("release") {
@@ -38,6 +38,7 @@ val copyWeb by tasks.registering(Sync::class) {
 }
 tasks.named("preBuild") { dependsOn(copyWeb) }
 dependencies {
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.webkit:webkit:1.12.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

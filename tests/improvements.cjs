@@ -19,7 +19,8 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await p.fill("#query", "Dune");
   await p.locator("#searchForm").evaluate((f) => f.requestSubmit());
   await p.locator("#searchResults .card").first().waitFor();
-  await p.evaluate(() => window.scrollTo(0, 250));
+  await p.evaluate(() => window.scrollTo({ top: 250, behavior: "instant" }));
+  await p.waitForFunction(() => scrollY > 150);
   const scroll = await p.evaluate(() => scrollY);
   await p.locator("#searchResults .poster-link").first().click();
   await p.locator(".detail-heading").waitFor();
@@ -44,6 +45,7 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await p.locator("#searchResults .card").first().waitFor();
   assert.equal(await p.inputValue("#query"), "Dune");
   assert.match(await p.locator("#searchFilterLabel").innerText(), /Películas/);
+  await p.waitForFunction((expected) => Math.abs(scrollY - expected) < 80, scroll);
   assert.ok(Math.abs((await p.evaluate(() => scrollY)) - scroll) < 80);
   console.log(
     "PASS context: search → detail/cast → person → filmography → title → back; query/type/tab/scroll",

@@ -1,4 +1,4 @@
-# CarimarShow Native · 2.2.1
+# CarimarShow Native · 2.2.2
 
 Interfaz cinematográfica basada en las ocho pantallas de referencia del cliente. **Funciones reales, no un mockup interactivo.** Datos y pósteres de TMDB; sin registro obligatorio ni reproducción de películas.
 
@@ -12,8 +12,8 @@ La app instalable inicia en `/app/`, nunca en la presentación. Ambos sitios se 
 ## Pantallas y funciones
 
 1. **Arranque:** arte cinematográfico decorativo, monograma CS y progreso por fases reales de carga (catálogo, almacenamiento, consultas).
-2. **Inicio:** destacados reales de John Wick, Dune: Parte dos y Deadpool & Wolverine; carrusel por indicadores, tendencias y estrenos actuales de TMDB, filas horizontales y lista personal.
-3. **Explorar:** búsqueda de películas/series/personas, filtro por tipo, búsquedas recientes eliminables, accesos a categorías y tendencias del día.
+2. **Inicio:** portada elegida del feed diario actual de TMDB; carrusel por indicadores, selector de tendencias de hoy/semana, estrenos actuales, filas horizontales y lista personal.
+3. **Explorar:** búsqueda de películas/series/personas, filtro por tipo, búsquedas recientes eliminables, accesos a categorías y tendencias de hoy/semana.
 4. **Ficha:** información y votos reales, guardar, compartir, descarga de ficha, pestañas de descripción/reparto/tráileres/similares y actores enlazados.
 5. **Categorías:** géneros reales de TMDB y resultados de discover paginados; tarjetas con imágenes del catálogo.
 6. **Actor:** biografía, fecha/lugar de nacimiento, seguir, filmografía con créditos reales y reparto navegable.
@@ -138,8 +138,18 @@ El workflow **QA Web and Android 16** comprueba assets reales offline en WebView
 
 [Resumen](docs/MEJORAS-2.2.0.md): Perfil/Ayuda rediseñados; selección películas + series o un solo tipo en portada y dentro de cada género; taxonomías oficiales por plataforma; arranque que evita shells antiguos sin borrar personales.
 
-## Dominio principal — 2.2.1
+## Dominio principal — 2.2.1 (retirado)
 
-https://carimarshow.vercel.app/ es la única dirección pública principal; Android y Windows 2.2.1 usan este dominio para el API. El dominio `carimarshow-native.vercel.app` se retira sin redirección después de verificar/publicar los nuevos paquetes. Versiones nativas anteriores deben actualizarse para consultar el catálogo online. Instala encima, sin desinstalar ni restablecer datos. El almacenamiento web es por origen y no se migra automáticamente entre dominios. El repositorio continúa siendo `StudioLexair/CarimarShow-Native`.
+https://carimarshow.vercel.app/ es la única dirección pública principal; Android y Windows 2.2.1 usan este dominio para el API. El dominio `carimarshow-native.vercel.app` fue retirado sin redirección después de verificar/publicar los nuevos paquetes. Versiones nativas anteriores deben actualizarse para consultar el catálogo online. Instala encima, sin desinstalar ni restablecer datos. El almacenamiento web es por origen y no se migra automáticamente entre dominios. El repositorio continúa siendo `StudioLexair/CarimarShow-Native`.
 
 [Informe de retiro y actualización](docs/RETIRADA-DOMINIO-2.2.1.md).
+
+
+## Correcciones de comentarios del cliente — 2.2.2
+
+- Las fichas muestran el título original de TMDB cuando difiere del título localizado.
+- Inicio elige sus destacados del feed diario actual de TMDB; tendencias Hoy/Semana están disponibles en portada y en Explorar.
+- Android aplica insets seguros sobre la barra de estado, recorte y navegación del sistema para que Volver y la barra inferior no queden tapados.
+- Windows añade un smoke test del instalador y del arranque offline/WebView2 en CI. Esto no sustituye la confirmación en el PC del cliente; si el instalador vuelve a fallar, se necesita captura del mensaje y versión de Windows.
+
+El análisis completo de la conversación y los archivos de voz se conserva localmente, fuera del repositorio público, para no republicar datos privados del chat.

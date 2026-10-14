@@ -18,16 +18,21 @@ export async function browse(
   page = 1,
   genreId = null,
   genreLabel = "",
+  period = "day",
 ) {
   const maps = {
     movie: ["movie/popular", "Películas"],
     tv: ["tv/popular", "Series"],
     person: ["person/popular", "Personas"],
-    trending: ["trending/all/week", "Tendencias"],
+    trending: ["trending/all/day", "Tendencias"],
     new: ["movie/now_playing", "Nuevos lanzamientos"],
   };
   let [path, label] = maps[mode] || maps.movie;
   const params = { page: String(page) };
+  if (mode === "trending") {
+    period = period === "week" ? "week" : "day";
+    path = `trending/all/${period}`;
+  }
   if (genreId) {
     path = "discover/" + mode;
     params.with_genres = String(genreId);
@@ -42,9 +47,13 @@ export async function browse(
       (["movie", "tv", "person"].includes(mode) ? mode : "movie"),
   }));
   remember(items);
+  const periodTabs =
+    mode === "trending"
+      ? `<nav class="segmented range-filter" role="tablist" aria-label="Periodo de tendencias"><a role="tab" data-trend-period="day" aria-selected="${period === "day"}" class="${period === "day" ? "active" : ""}" href="#browse/trending/day">Hoy</a><a role="tab" data-trend-period="week" aria-selected="${period === "week"}" class="${period === "week" ? "active" : ""}" href="#browse/trending/week">Esta semana</a></nav>`
+      : "";
   if (page === 1)
     setView(
-      `${head(label, "#explore")}${offlineNote(d._offline ? d : null)}<div id="browseCards">${items.length ? cards(items) : empty("No hay títulos guardados de esta categoría", "Consulta con conexión para ampliar el catálogo.", "movie")}</div><div class="more-wrap"><button class="secondary" id="loadMore">Cargar más</button></div>`,
+      `${head(label, "#explore")}${periodTabs}${offlineNote(d._offline ? d : null)}<div id="browseCards">${items.length ? cards(items) : empty("No hay títulos guardados de esta categoría", "Consulta con conexión para ampliar el catálogo.", "movie")}</div><div class="more-wrap"><button class="secondary" id="loadMore">Cargar más</button></div>`,
     );
   else {
     $("#browseCards").insertAdjacentHTML("beforeend", cards(items));
@@ -57,7 +66,7 @@ export async function browse(
     b.onclick = async () => {
       b.disabled = true;
       try {
-        await browse(mode, rev, page + 1, genreId, genreLabel);
+        await browse(mode, rev, page + 1, genreId, genreLabel, period);
       } catch (e) {
         toast(e.message);
         b.disabled = false;

@@ -33,6 +33,7 @@ jobs:
           node tests/improvements.cjs
           node tests/polish.cjs
           node tests/profile-genres.cjs
+          node tests/client-feedback.cjs
   android-16:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'web' }}
     runs-on: ubuntu-latest

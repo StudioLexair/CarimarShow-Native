@@ -6,8 +6,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.webkit.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.WebViewAssetLoader
 import java.io.ByteArrayInputStream
 
@@ -21,16 +24,23 @@ class MainActivity : Activity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        web = WebView(this)
-        web.setBackgroundColor(Color.rgb(3, 21, 34))
-        setContentView(web)
-        // Android 15 fuerza edge-to-edge: aplicar los insets a la superficie nativa.
-        web.setOnApplyWindowInsetsListener { v, insets ->
-            v.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop,
-                insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
-            insets
+        // Mantener el WebView dentro del área segura. Android 15 aplica edge-to-edge
+        // y las barras del sistema podían cubrir el botón Volver o la navegación inferior.
+        val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(3, 21, 34)) }
+        web = WebView(this).apply { setBackgroundColor(Color.rgb(3, 21, 34)) }
+        root.addView(web, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        ))
+        setContentView(root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+            )
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom)
+            insets // Conservar los insets del teclado (IME) para los campos de búsqueda.
         }
-        web.requestApplyInsets()
+        ViewCompat.requestApplyInsets(root)
         web.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true

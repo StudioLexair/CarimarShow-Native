@@ -155,12 +155,12 @@ const BASE = process.env.BASE || "http://localhost:8083";
   });
   await ctx.route("**/api/tmdb?**", (route) =>
     new URL(route.request().url()).searchParams.get("path") ===
-    "trending/all/week"
+    "trending/all/day"
       ? route.abort()
       : route.continue(),
   );
   await page.goto(BASE + "/app/#home");
-  await page.getByText("Tendencias no disponibles", { exact: true }).waitFor();
+  await page.getByText("No se pudieron consultar las tendencias", { exact: true }).waitFor();
   const fresh = page.locator(".home-sections > section").nth(1);
   assert.ok((await fresh.locator(".card").count()) > 0);
   assert.ok((await page.locator("[data-retry]").count()) > 0);

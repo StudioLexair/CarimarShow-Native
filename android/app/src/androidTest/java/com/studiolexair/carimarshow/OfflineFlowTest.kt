@@ -7,6 +7,9 @@ import android.net.Uri
 import android.net.ConnectivityManager
 import android.content.Context
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents
@@ -45,7 +48,10 @@ class OfflineFlowTest {
         intending(hasAction(Intent.ACTION_VIEW)).respondWith(ActivityResult(Activity.RESULT_OK, null))
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         lateinit var web: WebView
-        scenario.onActivity { activity -> web = (activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as WebView) }
+        scenario.onActivity { activity ->
+            val root = activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as FrameLayout
+            web = root.getChildAt(0) as WebView
+        }
         fun js(script: String): String {
             var value = "null"
             val done = CountDownLatch(1)
@@ -90,6 +96,35 @@ class OfflineFlowTest {
             device.executeShellCommand("svc wifi enable")
         }
     }
+    @Test fun systemBarInsetsKeepNativeContentInsideSafeArea() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        try {
+            var checked = false
+            val deadline = System.currentTimeMillis() + 15000
+            while (!checked && System.currentTimeMillis() < deadline) {
+                scenario.onActivity { activity ->
+                    val root = activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as FrameLayout
+                    val insets = ViewCompat.getRootWindowInsets(root)
+                    if (root.width > 0 && root.height > 0 && insets != null) {
+                        val bars = insets.getInsets(
+                            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+                        )
+                        val web = root.getChildAt(0) as WebView
+                        assertTrue("WebView begins below the status-bar/cutout inset", web.top >= root.paddingTop)
+                        assertTrue("WebView ends above the navigation-bar inset", web.bottom <= root.height - root.paddingBottom)
+                        assertTrue("Top system-bar inset is applied to the root", root.paddingTop >= bars.top)
+                        assertTrue("Bottom system-bar inset is applied to the root", root.paddingBottom >= bars.bottom)
+                        checked = true
+                    }
+                }
+                if (!checked) Thread.sleep(150)
+            }
+            assertTrue("Window-insets callback must be delivered", checked)
+        } finally {
+            scenario.close()
+        }
+    }
+
     @Test fun shortDomainProxyWorksInNativeWebView() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("cmd connectivity airplane-mode disable")
@@ -101,7 +136,10 @@ class OfflineFlowTest {
         assertNotNull("Online test requires a real network", connectivity.activeNetwork)
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         lateinit var web: WebView
-        scenario.onActivity { activity -> web = (activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as WebView) }
+        scenario.onActivity { activity ->
+            val root = activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as FrameLayout
+            web = root.getChildAt(0) as WebView
+        }
         fun js(script: String): String {
             var value = "null"
             val done = CountDownLatch(1)

@@ -15,36 +15,47 @@ import { kind, keyOf, esc, title } from "./core-model.mjs";
 import { $ } from "./ui-dom.mjs";
 import { image, hydrate } from "./ui-images.mjs";
 import { icon } from "./ui-icons.mjs";
+
 export async function home(rev) {
   const results = await Promise.allSettled([
+    api("trending/all/day"),
     api("trending/all/week"),
     api("movie/now_playing"),
   ]);
   if (results.every((r) => r.status === "rejected")) throw results[0].reason;
-  const [trending, fresh] = results.map((r) =>
+  const [today, week, fresh] = results.map((r) =>
     r.status === "fulfilled"
       ? r.value
       : { results: [], _unavailable: true, _error: r.reason.message },
   );
   if (rev !== state.routeRevision) return;
-  const items = (trending.results || []).filter((m) => kind(m) !== "person"),
+  const mediaItems = (data) =>
+    (data.results || []).filter((m) => kind(m) !== "person");
+  const todayItems = mediaItems(today),
+    weekItems = mediaItems(week),
     newItems = (fresh.results || []).map((m) => ({
       ...m,
       media_type: "movie",
     }));
-  const features = (state.seed.featured || [])
-    .map((k) => state.seed.catalog.find((m) => keyOf(m) === k))
-    .filter(Boolean);
-  const heroes = (
-    features.length ? features : items.filter((m) => m.backdrop_path)
-  ).slice(0, 3);
-  remember([...items, ...newItems, ...heroes]);
+
+  // El destacado siempre procede del feed diario real de TMDB. El catálogo
+  // incluido sigue disponible offline, pero no fija la portada a títulos viejos.
+  const heroSource = todayItems.some((m) => m.backdrop_path)
+    ? todayItems
+    : weekItems;
+  const heroes = heroSource.filter((m) => m.backdrop_path).slice(0, 3);
+  remember([...todayItems, ...weekItems, ...newItems, ...heroes]);
   state.heroIndex = 0;
+
+  const trendMarkup = (data, list) =>
+    `${offlineNote(data._offline ? data : null)}${data._unavailable ? empty("No se pudieron consultar las tendencias", data._error || "Vuelve a intentarlo cuando haya conexión.", "offline") + '<button class="secondary" data-retry>Reintentar</button>' : list.length ? cards(list.slice(0, 12), true) : empty("Sin tendencias disponibles", data._offline ? "No hay títulos guardados para este periodo." : "La consulta terminó sin títulos para este periodo.", "movie")}`;
   const feed = (label, link, list, data) =>
     `<section>${section(label, link)}${offlineNote(data._offline ? data : null)}${data._unavailable ? empty("No se pudo consultar esta sección", data._error, "offline") + '<button class="secondary" data-retry>Reintentar</button>' : list.length ? cards(list, true) : empty("Sin títulos en esta selección", data._offline ? "No hay títulos en los datos locales de esta sección. Consulta de nuevo con conexión." : "La consulta terminó sin títulos para esta sección.", "movie")}</section>`;
+
   setView(
-    `${offlineNote(trending._offline ? trending : null)}<div class="hero-slider"><div id="heroSlot"></div><div class="slider-dots">${heroes.map((_, i) => `<button data-hero="${i}" class="${i === 0 ? "active" : ""}" aria-label="Destacado ${i + 1}"></button>`).join("")}</div></div><div class="home-sections"><section>${section("Tendencias", "#browse/trending")}${items.length ? cards(items.slice(0, 12), true) : empty(trending._unavailable ? "Tendencias no disponibles" : "Sin tendencias disponibles", trending._error || "No hay títulos en esta selección.", "movie")}${trending._unavailable ? '<button class="secondary" data-retry>Reintentar</button>' : ""}</section>${feed("Nuevos lanzamientos", "#browse/new", newItems.slice(0, 12), fresh)}<section>${section("Series para descubrir", "#browse/tv")}${items.some((m) => kind(m) === "tv") ? cards(items.filter((m) => kind(m) === "tv").slice(0, 9), true) : empty("Sin series en esta selección", trending._unavailable ? "No se pudo consultar la selección. Las categorías siguen disponibles." : "Puedes explorar más series desde la categoría Series.", "tv")}</section><section>${section("Tu lista", "#list")}${state.list.length ? cards(state.list.slice(0, 9), true) : empty("Guarda tu próxima historia", "Toca + en un título para encontrarlo aquí.")}</section></div>${legal()}`,
+    `<div class="hero-slider"><div id="heroSlot"></div><div class="slider-dots">${heroes.map((_, i) => `<button data-hero="${i}" class="${i === 0 ? "active" : ""}" aria-label="Destacado ${i + 1}" aria-pressed="${i === 0}"></button>`).join("")}</div></div><div class="home-sections"><section class="home-trends">${section("Tendencias", "#browse/trending/day")}<div class="segmented home-trend-filter" role="tablist" aria-label="Periodo de tendencias"><button type="button" role="tab" data-home-trend="day" aria-selected="true" class="active">Hoy</button><button type="button" role="tab" data-home-trend="week" aria-selected="false">Esta semana</button></div><div id="homeTrendResults" aria-live="polite">${trendMarkup(today, todayItems)}</div></section>${feed("Nuevos lanzamientos", "#browse/new", newItems.slice(0, 12), fresh)}<section>${section("Series para descubrir", "#browse/tv")}${weekItems.some((m) => kind(m) === "tv") ? cards(weekItems.filter((m) => kind(m) === "tv").slice(0, 9), true) : empty("Sin series en esta selección", week._unavailable ? "No se pudo consultar la selección. Las categorías siguen disponibles." : "Puedes explorar más series desde la categoría Series.", "tv")}</section><section>${section("Tu lista", "#list")}${state.list.length ? cards(state.list.slice(0, 9), true) : empty("Guarda tu próxima historia", "Toca + en un título para encontrarlo aquí.")}</section></div>${legal()}`,
   );
+
   function show(i) {
     const m = heroes[i];
     if (!m) return;
@@ -64,7 +75,22 @@ export async function home(rev) {
       "Explora las categorías o vuelve a consultar con conexión.",
       "movie",
     );
+
   document
     .querySelectorAll("[data-hero]")
     .forEach((b) => (b.onclick = () => show(Number(b.dataset.hero))));
+  document.querySelectorAll("[data-home-trend]").forEach((button) => {
+    button.onclick = () => {
+      const period = button.dataset.homeTrend,
+        data = period === "week" ? week : today,
+        list = period === "week" ? weekItems : todayItems;
+      document.querySelectorAll("[data-home-trend]").forEach((tab) => {
+        const active = tab.dataset.homeTrend === period;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", String(active));
+      });
+      $("#homeTrendResults").innerHTML = trendMarkup(data, list);
+      hydrate();
+    };
+  });
 }

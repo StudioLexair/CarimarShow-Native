@@ -80,6 +80,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installer build failed' }
           $file = 'artifacts/CarimarShow-Windows-x64-Setup.exe'
           (Get-FileHash $file -Algorithm SHA256).Hash + '  CarimarShow-Windows-x64-Setup.exe' | Set-Content artifacts/SHA256-Windows.txt
+      - name: Smoke-test installed offline app startup
+        shell: pwsh
+        run: |
+          $installDir = Join-Path $env:RUNNER_TEMP 'CarimarShow-Smoke'
+          $installer = (Resolve-Path 'artifacts/CarimarShow-Windows-x64-Setup.exe').Path
+          $setup = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-',"/DIR=$installDir") -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "CarimarShow installer exited with $($setup.ExitCode)" }
+          $exe = Join-Path $installDir 'CarimarShow.exe'
+          if (!(Test-Path $exe) -or !(Test-Path (Join-Path $installDir 'web/app/index.html'))) { throw 'Installed offline payload is incomplete' }
+          $app = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 15
+          $app.Refresh()
+          if ($app.HasExited) { throw 'Installed desktop app exited during WebView2 initialization' }
+          if (!(Get-Process msedgewebview2 -ErrorAction SilentlyContinue)) { throw 'WebView2 renderer did not start' }
+          Stop-Process -Id $app.Id -Force
+          Write-Host 'PASS: installer completed; offline web payload and WebView2 app process started.'
       - uses: actions/upload-artifact@v4
         with:
           name: CarimarShow-Windows-x64

@@ -1,4 +1,4 @@
-const SHELL = "carimarshow-shell-v2.2.1",
+const SHELL = "carimarshow-shell-v2.2.2",
   CONTENT = "carimarshow-content-v2.1.0",
   BASE = "/app/",
   MAX_AGE = 150 * 86400000;
