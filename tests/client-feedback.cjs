@@ -8,37 +8,85 @@ const BASE = process.env.BASE || "http://localhost:8083";
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  // Keep live TMDB catalog calls real; use a tiny deterministic CDN response so
+  // the cache assertion doesn't depend on image.tmdb.org being reachable in CI.
+  const testImage = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+nmWQAAAAASUVORK5CYII=",
+    "base64",
+  );
+  await page.route("https://image.tmdb.org/t/p/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      headers: { "access-control-allow-origin": "*", "cache-control": "no-store" },
+      body: testImage,
+    }),
+  );
   try {
     await page.goto(`${BASE}/app/#home`);
-    await page.locator(".home-trend-filter").waitFor({ timeout: 30000 });
+    await page.locator('[data-home-trends="day"]').waitFor({ timeout: 30000 });
+    await page.locator('[data-home-trends="week"]').waitFor({ timeout: 30000 });
     await page.locator(".hero h1 a").waitFor({ timeout: 30000 });
+    assert.equal(await page.locator(".home-trend-filter").count(), 0, "Home must not hide a feed behind period buttons");
+    assert.deepEqual(
+      await page.locator("[data-home-trends]").evaluateAll((sections) => sections.map((section) => section.dataset.homeTrends)),
+      ["day", "week"],
+      "Today's trend section must appear before this week's section",
+    );
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const trendBounds = await page.locator("[data-home-trends]").evaluateAll((sections) =>
+      sections.map((section) => {
+        const rect = section.getBoundingClientRect();
+        return { top: rect.top + scrollY, bottom: rect.bottom + scrollY };
+      }),
+    );
+    assert.ok(
+      trendBounds[1].top >= trendBounds[0].bottom,
+      "Daily and weekly trends remain stacked at desktop widths",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(
+      (await page.locator('[data-home-trends="day"] .section-head h2').innerText()).trim(),
+      "Tendencias de hoy",
+    );
+    assert.equal(
+      (await page.locator('[data-home-trends="week"] .section-head h2').innerText()).trim(),
+      "Tendencias de esta semana",
+    );
+    assert.equal(
+      await page.locator('[data-home-trends="day"] .section-head a').getAttribute("href"),
+      "#browse/trending/day",
+    );
+    assert.equal(
+      await page.locator('[data-home-trends="week"] .section-head a').getAttribute("href"),
+      "#browse/trending/week",
+    );
+
     const heroImageKey = await page.locator(".hero-image").getAttribute("data-image");
     const cacheHandle = await page.waitForFunction(async (key) => {
       const image = document.querySelector(".hero-image");
-      if (!image || image.dataset.image !== key || !image.complete || image.naturalWidth < 2 || !image.src.startsWith("blob:")) return 0;
+      if (!image || image.dataset.image !== key || !image.complete || image.naturalWidth < 1) return 0;
+      if (image.dataset.bundled === "1") return 1;
+      if (!image.src.startsWith("blob:")) return 0;
       const { dbGet } = await import("./modules/storage-cache.mjs");
-      const blob = await dbGet("images", key);
+      const blob = (await dbGet("pinnedImages", key)) || (await dbGet("images", key));
       return blob instanceof Blob ? blob.size : 0;
     }, heroImageKey, { timeout: 30000 });
     const cachedHero = await cacheHandle.jsonValue();
-    assert.ok(cachedHero > 0, "Live TMDB artwork is fully loaded and cached automatically");
+    assert.ok(cachedHero > 0, "Hero artwork should be ready from a bundled or stored TMDB image");
 
     const heroHref = await page.locator(".hero h1 a").getAttribute("href");
     assert.ok(heroHref.startsWith("#detail/"));
     const todayHrefs = await page
-      .locator("#homeTrendResults .poster-link")
+      .locator("#homeTrendDayResults .poster-link")
       .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     assert.ok(todayHrefs.length > 0, "TMDB daily trending titles should render");
     assert.ok(todayHrefs.includes(heroHref), "Hero is selected from the live daily TMDB feed");
-    assert.equal(await page.locator('[data-home-trend="day"]').getAttribute("aria-selected"), "true");
-
-    await page.locator('[data-home-trend="week"]').click();
-    assert.equal(await page.locator('[data-home-trend="week"]').getAttribute("aria-selected"), "true");
     const weekHrefs = await page
-      .locator("#homeTrendResults .poster-link")
+      .locator("#homeTrendWeekResults .poster-link")
       .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    assert.ok(weekHrefs.length > 0, "TMDB weekly trending titles should render");
-    console.log("PASS home hero comes from real daily TMDB feed; Hoy and Esta semana both work");
+    assert.ok(weekHrefs.length > 0, "TMDB weekly trending titles should render below the daily feed");
+    console.log("PASS home shows both real TMDB trend feeds vertically, day first, with working browse links");
 
     await page.goto(`${BASE}/app/#browse/trending/day`);
     await page.locator('[data-trend-period="day"][aria-selected="true"]').waitFor();
