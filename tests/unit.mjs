@@ -417,3 +417,12 @@ test("candidato 2.2.2: versiones de Android, Windows y web están alineadas", ()
   ])
     assert.ok(fs.readFileSync(file, "utf8").includes(marker), file);
 });
+
+test("Windows: la ventana usa un icono PNG decodificable por WPF", () => {
+  const xaml = fs.readFileSync("windows/MainWindow.xaml", "utf8");
+  const project = fs.readFileSync("windows/CarimarShow.csproj", "utf8");
+  const icon = fs.readFileSync("windows/app.png");
+  assert.ok(xaml.includes('Icon="app.png"'));
+  assert.ok(project.includes('<Resource Include="app.png" />'));
+  assert.deepEqual(icon.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+});
