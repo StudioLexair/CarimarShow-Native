@@ -1,6 +1,12 @@
 import { validAge } from "./storage-policy.mjs";
 import { state } from "./core-state.mjs";
-import { keyOf, esc, kind, moveWithinType } from "./core-model.mjs";
+import {
+  keyOf,
+  esc,
+  kind,
+  moveWithinType,
+  normalizeListStatus,
+} from "./core-model.mjs";
 import { $, toast } from "./ui-dom.mjs";
 import { icon } from "./ui-icons.mjs";
 import { localPut } from "./storage-local.mjs";
@@ -85,12 +91,33 @@ export function saveItem(m) {
   const exists = state.list.some((x) => keyOf(x) === keyOf(m)),
     next = exists
       ? state.list.filter((x) => keyOf(x) !== keyOf(m))
-      : [{ ...m, media_type: kind(m) }, ...state.list];
+      : [
+          {
+            ...m,
+            media_type: kind(m),
+            listStatus: normalizeListStatus(m, m.listStatus),
+          },
+          ...state.list,
+        ];
   if (localPut("cs_list_v1", next)) {
     state.list = next;
     syncSaved();
     toast(exists ? "Eliminado de Mi lista" : "Añadido a Mi lista");
   }
+}
+
+export function setListStatus(key, status) {
+  const index = state.list.findIndex((item) => keyOf(item) === key);
+  if (index < 0) return false;
+  const current = state.list[index],
+    listStatus = normalizeListStatus(current, status);
+  if (current.listStatus === listStatus) return true;
+  const next = [...state.list];
+  next[index] = { ...current, listStatus };
+  if (!localPut("cs_list_v1", next)) return false;
+  state.list = next;
+  toast("Estado actualizado: " + listStatus);
+  return true;
 }
 
 export function logVisit(m) {
@@ -102,13 +129,16 @@ export function logVisit(m) {
 }
 
 export function expirePersonalMetadata() {
-  const clean = (m) =>
+  const clean = (m, field) =>
     validAge(m._contentSavedAt || state.seed.generatedAt)
       ? m
       : {
           id: m.id,
           media_type: kind(m),
           _contentExpired: true,
+          ...(field === "list"
+            ? { listStatus: normalizeListStatus(m, m.listStatus) }
+            : {}),
           ...(m.viewedAt ? { viewedAt: m.viewedAt } : {}),
         };
   for (const [field, key] of [
@@ -126,7 +156,7 @@ export function expirePersonalMetadata() {
               m.id > 0 &&
               (field !== "list" || kind(m) !== "person"),
           )
-          .map((m) => [keyOf(m), clean(m)]),
+          .map((m) => [keyOf(m), clean(m, field)]),
       ).values(),
     ];
     localPut(key, state[field]);

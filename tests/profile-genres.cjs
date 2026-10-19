@@ -278,7 +278,7 @@ fs.mkdirSync(shots, { recursive: true });
       app: !!(shell && await shell.match(location.origin + "/app/app.js")),
     };
   });
-  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.4-fix1"], "The updated service worker must replace the prior offline shell");
+  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.4-fix2"], "The updated service worker must replace the prior offline shell");
   assert.equal(shellState.index, true, "The revisioned shell must retain the offline entry page");
   assert.equal(shellState.app, true, "The revisioned shell must retain the app script");
   assert.equal(

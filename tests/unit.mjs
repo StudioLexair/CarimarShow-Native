@@ -26,6 +26,8 @@ import {
   title,
   esc,
   personFilmography,
+  listStatusOptions,
+  normalizeListStatus,
 } from "../public/app/modules/core-model.mjs";
 import { validateResponse } from "../public/app/modules/core-validation.mjs";
 const require = createRequire(import.meta.url),
@@ -70,6 +72,24 @@ test("pedido: dos WhatsApp propios, orden exacto y codificación reversible", ()
     [edited, edited],
   );
   assert.equal(items.length, 4);
+});
+test("Mi Lista: estados por tipo y valor predeterminado ante datos inválidos", () => {
+  assert.deepEqual([...listStatusOptions("movie")], ["Pendiente", "Vista"]);
+  assert.deepEqual([...listStatusOptions("tv")], [
+    "Pendiente",
+    "En emisión",
+    "Terminada",
+  ]);
+  assert.equal(
+    normalizeListStatus({ id: 1, media_type: "movie" }, "Vista"),
+    "Vista",
+  );
+  assert.equal(
+    normalizeListStatus({ id: 2, media_type: "tv" }, "Vista"),
+    "Pendiente",
+  );
+  assert.equal(normalizeListStatus("tv", "Terminada"), "Terminada");
+  assert.equal(normalizeListStatus("movie", "desconocido"), "Pendiente");
 });
 test("tráiler: solo YouTube, tipo Trailer y clave válida; sin teasers ajenos", () => {
   const good = {

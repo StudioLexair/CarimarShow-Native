@@ -21,6 +21,41 @@ const BASE = process.env.BASE || "http://localhost:8083";
     listPage();
     return state.list;
   });
+  const firstMovieStatus = page.locator("[data-list-status]").first();
+  assert.equal(await page.locator("[data-list-status]").count(), 2);
+  assert.deepEqual(
+    await firstMovieStatus.locator("option").evaluateAll((options) =>
+      options.map((option) => option.value),
+    ),
+    ["Pendiente", "Vista"],
+  );
+  await firstMovieStatus.selectOption("Vista");
+  await page.waitForFunction(
+    (id) =>
+      JSON.parse(localStorage.getItem("cs_list_v1") || "[]").some(
+        (item) => item.id === id && item.media_type === "movie" && item.listStatus === "Vista",
+      ),
+    selected[0].id,
+  );
+  const refreshedMovieStatus = await page.evaluate(async (id) => {
+    const { remember } = await import("./modules/services-library.mjs"),
+      { listPage } = await import("./modules/views-list.mjs");
+    remember([
+      {
+        id,
+        media_type: "movie",
+        title: "Título actualizado en red",
+        _source: "network",
+        _contentSavedAt: new Date().toISOString(),
+      },
+    ]);
+    listPage();
+    return JSON.parse(localStorage.getItem("cs_list_v1") || "[]").find(
+      (item) => item.id === id && item.media_type === "movie",
+    )?.listStatus;
+  }, selected[0].id);
+  assert.equal(refreshedMovieStatus, "Vista");
+  assert.equal(await page.inputValue("[data-list-status]"), "Vista");
   await page.locator("[data-menu]").first().click();
   assert.equal(await page.locator("#moveEarlier").isDisabled(), true);
   await page.locator("#moveLater").click();
@@ -37,12 +72,46 @@ const BASE = process.env.BASE || "http://localhost:8083";
   );
   await page.locator('[data-list-tab="tv"]').click();
   await page.waitForURL(/#list\/tv$/);
+  const tvStatus = page.locator("[data-list-status]").first();
+  assert.equal(await page.locator("[data-list-status]").count(), 1);
+  assert.deepEqual(
+    await tvStatus.locator("option").evaluateAll((options) =>
+      options.map((option) => option.value),
+    ),
+    ["Pendiente", "En emisión", "Terminada"],
+  );
+  await tvStatus.selectOption("Terminada");
+  await page.waitForFunction(
+    (id) =>
+      JSON.parse(localStorage.getItem("cs_list_v1") || "[]").some(
+        (item) => item.id === id && item.media_type === "tv" && item.listStatus === "Terminada",
+      ),
+    selected[1].id,
+  );
   await page.locator("[data-menu]").first().click();
   assert.equal(await page.locator("#moveEarlier").isDisabled(), true);
   assert.equal(await page.locator("#moveLater").isDisabled(), true);
   await page.locator("[data-close]").first().click();
   await page.reload();
   await page.locator('[data-list-tab="tv"].active').waitFor();
+  await page.locator("[data-list-status]").first().waitFor();
+  assert.equal(await page.inputValue("[data-list-status]"), "Terminada");
+  await page.evaluate((id) => {
+    const list = JSON.parse(localStorage.getItem("cs_list_v1") || "[]"),
+      item = list.find((entry) => entry.id === id && entry.media_type === "tv");
+    item._contentSavedAt = new Date(Date.now() - 151 * 86400000).toISOString();
+    localStorage.setItem("cs_list_v1", JSON.stringify(list));
+  }, selected[1].id);
+  await page.reload();
+  await page.locator("[data-list-status]").first().waitFor();
+  assert.equal(await page.inputValue("[data-list-status]"), "Terminada");
+  const expiredStatus = await page.evaluate((id) => {
+    const item = JSON.parse(localStorage.getItem("cs_list_v1") || "[]").find(
+      (entry) => entry.id === id && entry.media_type === "tv",
+    );
+    return { status: item?.listStatus, expired: item?._contentExpired };
+  }, selected[1].id);
+  assert.deepEqual(expiredStatus, { status: "Terminada", expired: true });
   await page.locator("[data-menu]").first().click();
   await page.locator("#menuSave").click();
   assert.equal(await page.locator(".title-row").count(), 0);

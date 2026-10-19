@@ -11,10 +11,11 @@ import {
   title,
   moveWithinType,
   sortSelection,
+  normalizeListStatus,
 } from "./core-model.mjs";
 import { sheet, closeSheet } from "./ui-sheet.mjs";
 import { icon } from "./ui-icons.mjs";
-import { saveItem, reorderList } from "./services-library.mjs";
+import { saveItem, reorderList, setListStatus } from "./services-library.mjs";
 import { removeDownload, downloadItem } from "./services-downloads.mjs";
 import { share } from "./services-platform.mjs";
 export function listPage() {
@@ -38,11 +39,22 @@ export function listPage() {
       sorting,
     );
     $("#listContent").innerHTML = items.length
-      ? titleRows(items)
+      ? titleRows(items, false, true)
       : empty(
           t === "movie" ? "Aún no hay películas" : "Aún no hay series",
           "Añade títulos con el botón +. Tu lista se guarda en este dispositivo.",
         );
+    document.querySelectorAll("[data-list-status]").forEach((select) => {
+      select.onchange = () => {
+        const item = state.list.find(
+          (m) => keyOf(m) === select.dataset.listStatus,
+        );
+        if (!setListStatus(select.dataset.listStatus, select.value))
+          select.value = item
+            ? normalizeListStatus(item, item.listStatus)
+            : "Pendiente";
+      };
+    });
     hydrate();
   }
   document.querySelectorAll("[data-list-tab]").forEach(

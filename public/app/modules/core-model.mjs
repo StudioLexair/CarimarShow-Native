@@ -147,3 +147,16 @@ export function sortSelection(items, mode = "manual") {
     );
   return [...items];
 }
+
+const MOVIE_LIST_STATUSES = Object.freeze(["Pendiente", "Vista"]),
+  TV_LIST_STATUSES = Object.freeze(["Pendiente", "En emisión", "Terminada"]);
+
+export function listStatusOptions(item) {
+  const mediaType = typeof item === "string" ? item : kind(item);
+  return mediaType === "tv" ? TV_LIST_STATUSES : MOVIE_LIST_STATUSES;
+}
+
+export function normalizeListStatus(item, status) {
+  const options = listStatusOptions(item);
+  return options.includes(status) ? status : "Pendiente";
+}

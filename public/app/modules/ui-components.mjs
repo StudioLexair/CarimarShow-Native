@@ -9,6 +9,8 @@ import {
   year,
   trailerList,
   duration,
+  listStatusOptions,
+  normalizeListStatus,
 } from "./core-model.mjs";
 import { remember } from "./services-library.mjs";
 import { state } from "./core-state.mjs";
@@ -87,13 +89,22 @@ export function cast(p) {
   return `<a class="cast-person" href="#person/${p.id}">${image(p.profile_path, "w185", p.name)}<strong>${esc(p.name)}</strong><small>${esc(p.character || p.known_for_department || "Actuación")}</small></a>`;
 }
 
-export function titleRows(items, download = false) {
+export function titleRows(items, download = false, trackStatus = false) {
   remember(items);
   return `<div class="title-list">${items
     .map((m) => {
       const d = state.seed.details[`${kind(m)}/${m.id}`] || m,
-        pin = state.downloadMap.get(keyOf(m));
-      return `<article class="title-row"><a href="#detail/${kind(m)}/${m.id}">${image(m.poster_path, "w185", title(m))}</a><div class="title-copy"><h3><a href="#detail/${kind(m)}/${m.id}">${esc(title(m))}</a></h3><span class="kind">${kind(m) === "tv" ? "Serie" : "Película"}</span><span class="metadata">${year(m)}${d.runtime || d.number_of_seasons ? " · " + duration(d) : ""}</span>${download && pin ? `<span class="download-badge">${icon("check")}Ficha offline · ${(pin.bytes / 1024 / 1024).toFixed(1)} MB</span>` : ""}</div><button class="plain-icon" data-menu="${keyOf(m)}" aria-label="Opciones de ${esc(title(m))}">${icon("dots")}</button></article>`;
+        pin = state.downloadMap.get(keyOf(m)),
+        status = normalizeListStatus(m, m.listStatus),
+        statusControl = trackStatus
+          ? `<label class="list-status"><span>Estado</span><select data-list-status="${esc(keyOf(m))}" aria-label="Estado de seguimiento de ${esc(title(m))}">${listStatusOptions(m)
+              .map(
+                (option) =>
+                  `<option value="${esc(option)}"${option === status ? " selected" : ""}>${esc(option)}</option>`,
+              )
+              .join("")}</select></label>`
+          : "";
+      return `<article class="title-row"><a href="#detail/${kind(m)}/${m.id}">${image(m.poster_path, "w185", title(m))}</a><div class="title-copy"><h3><a href="#detail/${kind(m)}/${m.id}">${esc(title(m))}</a></h3><span class="kind">${kind(m) === "tv" ? "Serie" : "Película"}</span><span class="metadata">${year(m)}${d.runtime || d.number_of_seasons ? " · " + duration(d) : ""}</span>${download && pin ? `<span class="download-badge">${icon("check")}Ficha offline · ${(pin.bytes / 1024 / 1024).toFixed(1)} MB</span>` : ""}${statusControl}</div><button class="plain-icon" data-menu="${keyOf(m)}" aria-label="Opciones de ${esc(title(m))}">${icon("dots")}</button></article>`;
     })
     .join("")}</div>`;
 }
