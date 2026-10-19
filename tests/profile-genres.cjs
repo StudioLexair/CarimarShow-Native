@@ -268,6 +268,11 @@ fs.mkdirSync(shots, { recursive: true });
     "Perfil conservado",
   );
   assert.match(await p.locator(".profile-note").innerText(), /2\.2\.4/);
+  await p.evaluate(async () => await navigator.serviceWorker.ready);
+  const shellCaches = await p.evaluate(async () =>
+    (await caches.keys()).filter((key) => key.startsWith("carimarshow-shell-")),
+  );
+  assert.deepEqual(shellCaches, ["carimarshow-shell-v2.2.4-fix1"], "The updated service worker must replace the prior offline shell");
   assert.equal(
     await p.evaluate(
       () => JSON.parse(localStorage.getItem("cs_list_v1")).length,

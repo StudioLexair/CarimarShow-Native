@@ -516,6 +516,13 @@ test("candidato 2.2.4: versiones de Android, Windows y web están alineadas", ()
     assert.ok(fs.readFileSync(file, "utf8").includes(marker), file);
 });
 
+test("PWA: la revisión del shell cambia sin fingir una nueva versión pública", () => {
+  const version = JSON.parse(fs.readFileSync("package.json", "utf8")).version,
+    worker = fs.readFileSync("public/app/sw.js", "utf8"),
+    shell = worker.match(/const SHELL = "([^"]+)"/)?.[1];
+  assert.ok(shell, "Debe existir un nombre de caché para la aplicación web");
+  assert.notEqual(shell, `carimarshow-shell-v${version}`, "Una corrección debe invalidar el shell instalado sin subir el número de versión pública");
+});
 test("imágenes TMDB: la carga directa evita placeholders cuando falla el cache CORS", () => {
   const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8");
   assert.ok(source.includes("https://image.tmdb.org/t/p/${size}${p}"));
