@@ -522,6 +522,9 @@ test("PWA: la revisión del shell cambia sin fingir una nueva versión pública"
     shell = worker.match(/const SHELL = "([^"]+)"/)?.[1];
   assert.ok(shell, "Debe existir un nombre de caché para la aplicación web");
   assert.notEqual(shell, `carimarshow-shell-v${version}`, "Una corrección debe invalidar el shell instalado sin subir el número de versión pública");
+  const startup = fs.readFileSync("public/app/startup.mjs", "utf8");
+  assert.ok(startup.includes('name !== shellVersion'));
+  assert.ok(startup.includes('!name.startsWith(shellVersion + "-")'), "Startup must preserve suffix revisions of the current shell");
 });
 test("imágenes TMDB: la carga directa evita placeholders cuando falla el cache CORS", () => {
   const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8");

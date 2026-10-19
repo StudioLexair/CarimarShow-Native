@@ -269,10 +269,18 @@ fs.mkdirSync(shots, { recursive: true });
   );
   assert.match(await p.locator(".profile-note").innerText(), /2\.2\.4/);
   await p.evaluate(async () => await navigator.serviceWorker.ready);
-  const shellCaches = await p.evaluate(async () =>
-    (await caches.keys()).filter((key) => key.startsWith("carimarshow-shell-")),
-  );
-  assert.deepEqual(shellCaches, ["carimarshow-shell-v2.2.4-fix1"], "The updated service worker must replace the prior offline shell");
+  const shellState = await p.evaluate(async () => {
+    const names = (await caches.keys()).filter((key) => key.startsWith("carimarshow-shell-")),
+      shell = names.length ? await caches.open(names[0]) : null;
+    return {
+      names,
+      index: !!(shell && await shell.match(location.origin + "/app/index.html")),
+      app: !!(shell && await shell.match(location.origin + "/app/app.js")),
+    };
+  });
+  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.4-fix1"], "The updated service worker must replace the prior offline shell");
+  assert.equal(shellState.index, true, "The revisioned shell must retain the offline entry page");
+  assert.equal(shellState.app, true, "The revisioned shell must retain the app script");
   assert.equal(
     await p.evaluate(
       () => JSON.parse(localStorage.getItem("cs_list_v1")).length,

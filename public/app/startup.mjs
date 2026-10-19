@@ -1,6 +1,7 @@
 // A new entry point can bypass shells installed before modular updates existed.
 // Clear obsolete UI shells only: never IndexedDB, profile, selection or explicit downloads.
-const version = document.documentElement.dataset.appVersion || "2.2.4";
+const version = document.documentElement.dataset.appVersion || "2.2.4",
+  shellVersion = `carimarshow-shell-v${version}`;
 window.CARIMAR_CONFIG = { ...window.CARIMAR_CONFIG, version };
 if (!window.CARIMAR_CONFIG.apiOrigin) {
   try {
@@ -8,7 +9,8 @@ if (!window.CARIMAR_CONFIG.apiOrigin) {
       for (const name of await caches.keys())
         if (
           name.startsWith("carimarshow-shell-") &&
-          name !== `carimarshow-shell-v${version}`
+          name !== shellVersion &&
+          !name.startsWith(shellVersion + "-")
         )
           await caches.delete(name);
     if ("serviceWorker" in navigator)
