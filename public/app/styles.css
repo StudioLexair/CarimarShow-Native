@@ -12,3 +12,14 @@
 .floating-tools .circle-button{background:#031522d9;border:1px solid #ffffff35;box-shadow:0 2px 12px #0005}
 .info-grid .original-title dd{color:#d9edf8;font-weight:600;overflow-wrap:anywhere}
 @media(max-width:700px){.app-header{padding-top:calc(22px + env(safe-area-inset-top,0px))}}
+
+/* Ficha: muestra juntos el banner panorámico de TMDB y el póster vertical. */
+.detail-visual{overflow:visible}
+.detail-backdrop{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#0b2634;z-index:-2}
+.detail-backdrop>.detail-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;z-index:0}
+.detail-visual:after{border-radius:inherit;pointer-events:none}
+.detail-visual--poster-fallback .detail-backdrop>.detail-image{filter:blur(14px) brightness(.55);transform:scale(1.08)}
+.detail-poster-frame{position:absolute;left:24px;bottom:-56px;width:140px;aspect-ratio:2/3;border:3px solid var(--bg);border-radius:12px;background:#0c2a3e;overflow:hidden;box-shadow:0 14px 34px #000a;z-index:1}
+.detail-poster-image{display:block;width:100%;height:100%;object-fit:cover}
+.detail-page.has-detail-poster .detail-heading{margin-top:78px}
+@media(max-width:700px){.detail-poster-frame{left:17px;bottom:-38px;width:101px;border-width:2px;border-radius:9px}.detail-page.has-detail-poster .detail-heading{margin-top:57px}}

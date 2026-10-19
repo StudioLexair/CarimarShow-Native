@@ -44,8 +44,29 @@ export async function detail(type, id, rev, initialTab = "description") {
     )
       ? initialTab
       : "description";
+  const hasBackdrop = Boolean(d.backdrop_path);
+  const detailPageClass = d.poster_path
+    ? "detail-page has-detail-poster"
+    : "detail-page";
+  const visualClass = hasBackdrop
+    ? "detail-visual"
+    : "detail-visual detail-visual--poster-fallback";
+  const backdropMarkup = `<div class="detail-backdrop">${image(
+    d.backdrop_path || d.poster_path,
+    hasBackdrop ? "w780" : "w342",
+    "",
+    "detail-image",
+  )}</div>`;
+  const posterMarkup = d.poster_path
+    ? `<div class="detail-poster-frame">${image(
+        d.poster_path,
+        "w342",
+        `Póster de ${title(d)}`,
+        "detail-poster-image",
+      )}</div>`
+    : "";
   setView(
-    `<article class="detail-page"><div class="detail-layout"><div><div class="detail-visual">${image(d.backdrop_path || d.poster_path, d.backdrop_path ? "w780" : "w342", "", "detail-image")}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
+    `<article class="${detailPageClass}"><div class="detail-layout"><div><div class="${visualClass}" data-has-backdrop="${hasBackdrop}">${backdropMarkup}${posterMarkup}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
       d.genres?.length
         ? " · " +
           d.genres

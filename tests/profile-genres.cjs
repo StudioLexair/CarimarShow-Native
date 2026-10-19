@@ -10,9 +10,31 @@ fs.mkdirSync(shots, { recursive: true });
     page = await ctx.newPage(),
     errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  async function assertDetailArtwork() {
+    await page.locator(".detail-backdrop .detail-image").waitFor();
+    await page.locator(".detail-poster-frame .detail-poster-image").waitFor();
+    const artwork = await page.locator(".detail-visual").evaluate((visual) => {
+      const backdrop = visual.querySelector(".detail-backdrop .detail-image");
+      const poster = visual.querySelector(".detail-poster-frame .detail-poster-image");
+      return {
+        hasBackdrop: visual.dataset.hasBackdrop === "true",
+        backdropKey: backdrop?.dataset.image || "",
+        posterKey: poster?.dataset.image || "",
+        backdropWidth: backdrop?.getBoundingClientRect().width || 0,
+        posterWidth: poster?.getBoundingClientRect().width || 0,
+        horizontalOverflow: document.documentElement.scrollWidth > innerWidth,
+      };
+    });
+    assert.ok(artwork.backdropKey, "La ficha debe mostrar una imagen panorámica");
+    assert.ok(artwork.posterKey, "La ficha debe mostrar el póster por separado");
+    assert.ok(artwork.backdropWidth > 0 && artwork.posterWidth > 0);
+    assert.equal(artwork.horizontalOverflow, false);
+    if (artwork.hasBackdrop)
+      assert.notEqual(artwork.backdropKey.slice(4), artwork.posterKey.slice(4));
+  }
   await page.goto(BASE + "/app/#profile");
   await page.locator(".profile-hero").waitFor();
-  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.3/);
+  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.4/);
   assert.equal(await page.locator(".profile-stats strong").count(), 3);
   assert.equal(await page.locator("#checkUpdate").count(), 1);
   await page.screenshot({ path: shots + "/perfil.png", fullPage: true });
@@ -93,6 +115,8 @@ fs.mkdirSync(shots, { recursive: true });
     .getAttribute("href");
   await page.locator("#browseCards .poster-link").first().click();
   await page.locator(".detail-heading").waitFor();
+  await assertDetailArtwork();
+  await page.screenshot({ path: shots + "/serie-banner-y-poster.png", fullPage: true });
   await page.locator("[data-back]").first().click();
   await page.waitForURL(/#genre\/tv\//);
   await page.locator('[data-catalog-type="tv"][aria-current="page"]').waitFor();
@@ -108,7 +132,13 @@ fs.mkdirSync(shots, { recursive: true });
     await page.locator('#browseCards .poster-link[href*="/tv/"]').count(),
     0,
   );
-  console.log("PASS only movies within same genre");
+  await page.locator("#browseCards .poster-link").first().click();
+  await page.locator(".detail-heading").waitFor();
+  await assertDetailArtwork();
+  await page.screenshot({ path: shots + "/pelicula-banner-y-poster.png", fullPage: true });
+  await page.locator("[data-back]").first().click();
+  await page.waitForURL(/#genre\/movie\//);
+  console.log("PASS movie and series detail show backdrop plus separate poster");
   await page.goto(BASE + "/app/#genres/tv");
   await page.locator(".genre-tile").first().waitFor();
   assert.equal(await page.locator('a[href*="/27/"]').count(), 0);
@@ -176,7 +206,7 @@ fs.mkdirSync(shots, { recursive: true });
     await p.locator(".profile-head h2").innerText(),
     "Perfil conservado",
   );
-  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.3/);
+  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.4/);
   assert.equal(
     await p.evaluate(
       () => JSON.parse(localStorage.getItem("cs_list_v1")).length,

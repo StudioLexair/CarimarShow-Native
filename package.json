@@ -1,6 +1,6 @@
 {
   "name": "carimarshow-native",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "private": true,
   "description": "CarimarShow — catálogo web, Android Kotlin y Windows",
   "scripts": {

@@ -14,7 +14,10 @@ export function image(p, size = "w342", alt = "", cls = "poster") {
   if (!p || !/^\/[\w.-]+$/.test(p))
     return `<img class="${esc(cls)}" src="${placeholder}" alt="${esc(alt)}">`;
   const bundled = state.seed.images[size + p];
-  return `<img class="${esc(cls)}" ${["hero-image", "detail-image", "actor-cover"].includes(cls) ? "" : 'loading="lazy"'} src="${bundled ? BASE + esc(bundled) : placeholder}" data-image="${esc(size + p)}" ${bundled ? 'data-bundled="1"' : ""} alt="${esc(alt)}">`;
+  const src = bundled
+    ? BASE + esc(bundled)
+    : esc(`https://image.tmdb.org/t/p/${size}${p}`);
+  return `<img class="${esc(cls)}" ${["hero-image", "detail-image", "detail-poster-image", "actor-cover"].includes(cls) ? "" : 'loading="lazy"'} src="${src}" data-image="${esc(size + p)}" ${bundled ? 'data-bundled="1"' : ""} alt="${esc(alt)}">`;
 }
 
 export let observer;
@@ -59,7 +62,20 @@ export function hydrate() {
       }),
     { rootMargin: "120px" },
   );
-  document.querySelectorAll("[data-image]").forEach((i) => observer.observe(i));
+  document.querySelectorAll("[data-image]").forEach((i) => {
+    if (!i.dataset.errorFallbackBound) {
+      i.dataset.errorFallbackBound = "1";
+      const fallback = () => {
+        if (i.dataset.placeholderShown === "1") return;
+        i.dataset.placeholderShown = "1";
+        i.src = placeholder;
+      };
+      i.addEventListener("error", fallback, { once: true });
+      if (i.complete && i.naturalWidth === 0 && !i.src.startsWith("data:"))
+        fallback();
+    }
+    observer.observe(i);
+  });
   syncSaved();
   icons();
 }

@@ -1,6 +1,6 @@
 // A new entry point can bypass shells installed before modular updates existed.
 // Clear obsolete UI shells only: never IndexedDB, profile, selection or explicit downloads.
-const version = document.documentElement.dataset.appVersion || "2.2.3";
+const version = document.documentElement.dataset.appVersion || "2.2.4";
 window.CARIMAR_CONFIG = { ...window.CARIMAR_CONFIG, version };
 if (!window.CARIMAR_CONFIG.apiOrigin) {
   try {

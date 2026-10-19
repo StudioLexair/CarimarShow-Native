@@ -415,7 +415,7 @@ test("descarga Android: el dominio propio resuelve el asset firmado y salta la p
         ok: false,
         headers: {
           get: () =>
-            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.3/CarimarShow-Android.apk",
+            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.4/CarimarShow-Android.apk",
         },
       };
     if (calls.length === 2)
@@ -470,15 +470,22 @@ test("descarga Android: rechaza métodos y redirecciones fuera de GitHub", async
   assert.equal(calls, 1);
 });
 
-test("candidato 2.2.3: versiones de Android, Windows y web están alineadas", () => {
-  assert.equal(JSON.parse(fs.readFileSync("package.json", "utf8")).version, "2.2.3");
+test("candidato 2.2.4: versiones de Android, Windows y web están alineadas", () => {
+  assert.equal(JSON.parse(fs.readFileSync("package.json", "utf8")).version, "2.2.4");
   for (const [file, marker] of [
-    ["public/app/config.js", "version:'2.2.3'"],
-    ["android/app/build.gradle.kts", 'versionName = "2.2.3"'],
-    ["windows/CarimarShow.csproj", "<Version>2.2.3</Version>"],
-    ["windows/installer.iss", '#define MyAppVersion "2.2.3"'],
+    ["public/app/config.js", "version:'2.2.4'"],
+    ["android/app/build.gradle.kts", 'versionName = "2.2.4"'],
+    ["windows/CarimarShow.csproj", "<Version>2.2.4</Version>"],
+    ["windows/installer.iss", '#define MyAppVersion "2.2.4"'],
   ])
     assert.ok(fs.readFileSync(file, "utf8").includes(marker), file);
+});
+
+test("imágenes TMDB: la carga directa evita placeholders cuando falla el cache CORS", () => {
+  const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8");
+  assert.ok(source.includes("https://image.tmdb.org/t/p/${size}${p}"));
+  assert.ok(source.includes('i.addEventListener("error", fallback, { once: true })'));
+  assert.ok(source.includes('fetch("https://image.tmdb.org/t/p/" + k'));
 });
 
 test("Windows: la ventana usa un icono PNG decodificable por WPF", () => {
