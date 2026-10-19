@@ -65,7 +65,16 @@ window.addEventListener("hashchange", route);
 
 window.addEventListener("online", () => {
   connection();
-  toast("Conexión recuperada. Abre una sección para actualizarla.");
+  document.querySelectorAll("[data-offline-note]").forEach((note) => {
+    if (note.querySelector("[data-retry]")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "text-button";
+    button.dataset.retry = "";
+    button.textContent = "Reintentar ahora";
+    note.append(" ", button);
+  });
+  toast("Conexión recuperada. Puedes actualizar la información local.");
 });
 
 window.addEventListener("offline", connection);

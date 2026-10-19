@@ -60,7 +60,7 @@ export async function detail(type, id, rev, initialTab = "description") {
   const posterMarkup = d.poster_path
     ? `<div class="detail-poster-frame">${image(
         d.poster_path,
-        "w342",
+        "w500",
         `Póster de ${title(d)}`,
         "detail-poster-image",
       )}</div>`

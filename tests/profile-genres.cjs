@@ -22,12 +22,16 @@ fs.mkdirSync(shots, { recursive: true });
         posterKey: poster?.dataset.image || "",
         backdropWidth: backdrop?.getBoundingClientRect().width || 0,
         posterWidth: poster?.getBoundingClientRect().width || 0,
+        posterHeight: poster?.getBoundingClientRect().height || 0,
+        viewportWidth: innerWidth,
         horizontalOverflow: document.documentElement.scrollWidth > innerWidth,
       };
     });
     assert.ok(artwork.backdropKey, "La ficha debe mostrar una imagen panorámica");
     assert.ok(artwork.posterKey, "La ficha debe mostrar el póster por separado");
     assert.ok(artwork.backdropWidth > 0 && artwork.posterWidth > 0);
+    assert.ok(artwork.posterHeight >= artwork.posterWidth * 1.45, "The vertical poster must remain portrait-shaped");
+    assert.ok(artwork.posterWidth >= (artwork.viewportWidth <= 700 ? 130 : 170), "The poster must be readable at mobile and desktop sizes");
     assert.equal(artwork.horizontalOverflow, false);
     if (artwork.hasBackdrop)
       assert.notEqual(artwork.backdropKey.slice(4), artwork.posterKey.slice(4));
@@ -136,6 +140,10 @@ fs.mkdirSync(shots, { recursive: true });
   await page.locator(".detail-heading").waitFor();
   await assertDetailArtwork();
   await page.screenshot({ path: shots + "/pelicula-banner-y-poster.png", fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await assertDetailArtwork();
+  await page.screenshot({ path: shots + "/pelicula-poster-escritorio.png", fullPage: true });
+  await page.setViewportSize({ width: 584, height: 890 });
   await page.locator("[data-back]").first().click();
   await page.waitForURL(/#genre\/movie\//);
   console.log("PASS movie and series detail show backdrop plus separate poster");
@@ -150,6 +158,59 @@ fs.mkdirSync(shots, { recursive: true });
   console.log(
     "PASS official TV-only genre and movie-only genres not misrepresented",
   );
+  await page.goto(BASE + "/app/#person/16483");
+  await page.locator(".actor-title h1").waitFor({ timeout: 30000 });
+  await page.locator(".filmography-note").waitFor();
+  assert.match(await page.locator(".actor-title h1").innerText(), /Stallone/);
+  assert.match(await page.locator(".filmography-note").innerText(), /se omiten documentales/i);
+  assert.equal(await page.locator("[data-offline-note]").count(), 0, "Connected person credits must come from a fresh TMDB response");
+  const filmographyLinks = await page.locator('a[href="#filmography/16483"]').evaluateAll((links) => links.length);
+  assert.equal(filmographyLinks, 2, "Both profile links should open the same complete filmography");
+  const previewTitles = await page.locator(".rail .card h3").allTextContents();
+  assert.equal(previewTitles.length, 9);
+  await page.locator('.actor-actions a[href="#filmography/16483"]').click();
+  await page.waitForURL(/#filmography\/16483$/);
+  await page.locator(".grid .card").first().waitFor();
+  const fullTitles = await page.locator(".grid .card h3").allTextContents();
+  assert.ok(fullTitles.length > 9, "The full route should show more than the profile preview");
+  assert.deepEqual(fullTitles.slice(0, 9), previewTitles, "Profile preview and full filmography must use identical filters and ordering");
+  assert.ok(fullTitles.some((title) => /Tulsa King/i.test(title)));
+  assert.ok(!fullTitles.some((title) => /Tonight Show|Late Show|60 Minutes|The View|Family Stallone/i.test(title)), "Talk, news and reality appearances must not pollute the actor filmography");
+  console.log("PASS connected Stallone filmography: same filtered credits in profile and full list");
+  await page.evaluate(() => { location.hash = "#person/16483"; });
+  await page.waitForURL(/#person\/16483$/);
+  await page.locator(".actor-title h1").waitFor();
+  await page.locator('.section-head a[href="#filmography/16483"]').click();
+  await page.waitForURL(/#filmography\/16483$/);
+  await page.locator(".grid .card").first().waitFor();
+  assert.deepEqual(await page.locator(".grid .card h3").allTextContents(), fullTitles, "Ver todo must open the same list as Ver filmografía");
+  const replay = await page.evaluate(async () => {
+    const { dbGet } = await import("./modules/storage-cache.mjs");
+    return {
+      person: await dbGet("api", "path=person%2F16483"),
+      credits: await dbGet("api", "path=person%2F16483%2Fcombined_credits"),
+    };
+  });
+  assert.ok(replay.person && replay.credits, "The connected TMDB response should be cached for offline use");
+  await ctx.setOffline(true);
+  await page.evaluate(() => { location.hash = "#person/16483"; });
+  await page.waitForURL(/#person\/16483$/);
+  await page.locator("[data-offline-note]").waitFor();
+  assert.equal(await page.locator("[data-offline-note] [data-retry]").count(), 0, "Do not offer an online retry while the browser is offline");
+  await page.route("**/api/tmdb?**", async (route) => {
+    const path = new URL(route.request().url()).searchParams.get("path"),
+      body = path === "person/16483" ? replay.person : path === "person/16483/combined_credits" ? replay.credits : null;
+    if (!body) return route.continue();
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+  });
+  await ctx.setOffline(false);
+  await page.locator("[data-offline-note] [data-retry]").waitFor();
+  await page.locator("[data-offline-note] [data-retry]").click();
+  await page.locator(".actor-title h1").waitFor();
+  await page.waitForFunction(() => !document.querySelector("[data-offline-note]"));
+  await page.unroute("**/api/tmdb?**");
+  assert.deepEqual(errors, []);
+  console.log("PASS cached filmography is labelled offline and can be refreshed after reconnection");
   for (const width of [360, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(BASE + "/app/#profile");

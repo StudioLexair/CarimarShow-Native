@@ -25,6 +25,7 @@ import {
   kind,
   title,
   esc,
+  personFilmography,
 } from "../public/app/modules/core-model.mjs";
 import { validateResponse } from "../public/app/modules/core-validation.mjs";
 const require = createRequire(import.meta.url),
@@ -130,6 +131,40 @@ test("tipos/modelo: personas no son películas, escapado sin null/undefined", ()
   assert.equal(esc(undefined), "");
   assert.equal(esc("<script>"), "&lt;script&gt;");
   assert.match(title({ _contentExpired: true }), /actualizar/);
+});
+test("filmografía: créditos de actuación limpios, ordenados y separados de otros oficios", () => {
+  const credits = {
+    cast: [
+      { id: 1, title: "Película válida", media_type: "movie", release_date: "2000-01-01" },
+      { id: 2, name: "Serie válida", media_type: "tv", first_air_date: "2024-05-01", genre_ids: [18] },
+      { id: 3, name: "Programa de entrevistas", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10767] },
+      { id: 4, name: "Noticias", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10763] },
+      { id: 5, name: "Telerrealidad", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10764] },
+      { id: 9, title: "Documental sobre otra persona", media_type: "movie", release_date: "2025-03-01", genre_ids: [99] },
+      { id: 1, title: "Película duplicada", media_type: "movie", release_date: "2000-01-01" },
+      { id: 6, title: "Contenido adulto", media_type: "movie", adult: true },
+      { id: 7, name: "Sin tipo de medio" },
+      { id: 8, name: "Persona ajena", media_type: "person" },
+    ],
+    crew: [
+      { id: 10, title: "Trabajo de montaje", media_type: "movie", department: "Editing" },
+    ],
+  };
+  const acting = personFilmography({ known_for_department: "Acting" }, credits);
+  assert.deepEqual(acting.map((m) => m.id), [2, 1]);
+  assert.deepEqual(acting.map((m) => m.media_type), ["tv", "movie"]);
+  const directing = personFilmography(
+    { known_for_department: "Directing" },
+    {
+      cast: credits.cast,
+      crew: [
+        { id: 11, title: "Dirigida", media_type: "movie", department: "Directing" },
+        { id: 12, title: "Montada", media_type: "movie", department: "Editing" },
+      ],
+    },
+  );
+  assert.deepEqual(directing.map((m) => m.id), [11]);
+  assert.deepEqual(personFilmography({}, credits).map((m) => m.id), [2, 1]);
 });
 test("proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansión arbitraria", () => {
   for (const q of [

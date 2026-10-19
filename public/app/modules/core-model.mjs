@@ -45,6 +45,64 @@ export function duration(d) {
       : "Duración no informada";
 }
 
+const NON_FILMOGRAPHY_GENRES = new Set([99, 10763, 10764, 10767]);
+
+// Keep the profile preview and "Ver todo" on the same filtered credits.
+// Actors use cast roles, excluding documentaries and non-fiction programmes;
+// other professionals use crew credits from their TMDB department.
+export function personFilmography(person, credits) {
+  const department = String(person?.known_for_department || ""),
+    isActing = !department || department === "Acting",
+    source = isActing
+      ? credits?.cast || []
+      : credits?.crew || [],
+    seen = new Set(),
+    rows = [];
+  for (const credit of source) {
+    if (
+      !credit ||
+      !Number.isInteger(credit.id) ||
+      credit.id <= 0 ||
+      credit.adult ||
+      !(credit.title || credit.name)
+    )
+      continue;
+    const mediaType =
+      credit.media_type === "movie" || credit.media_type === "tv"
+        ? credit.media_type
+        : credit.first_air_date
+          ? "tv"
+          : credit.release_date
+            ? "movie"
+            : "";
+    if (!mediaType) continue;
+    if (
+      !isActing &&
+      credit.department !== department
+    )
+      continue;
+    if (
+      isActing &&
+      (credit.genre_ids || []).some((id) => NON_FILMOGRAPHY_GENRES.has(Number(id)))
+    )
+      continue;
+    const key = `${mediaType}:${credit.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rows.push({ ...credit, media_type: mediaType });
+  }
+  const dateOf = (credit) => {
+    const date = Date.parse(credit.release_date || credit.first_air_date || "");
+    return Number.isFinite(date) ? date : 0;
+  };
+  return rows.sort(
+    (a, b) =>
+      dateOf(b) - dateOf(a) ||
+      (Number(b.popularity) || 0) - (Number(a.popularity) || 0) ||
+      String(a.title || a.name).localeCompare(String(b.title || b.name), "es"),
+  );
+}
+
 export function statusName(s) {
   return (
     {

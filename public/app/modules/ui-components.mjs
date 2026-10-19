@@ -28,7 +28,11 @@ export function offlineNote(value) {
     date && Number.isFinite(Date.parse(date))
       ? " Guardado: " + new Date(date).toLocaleDateString("es-ES") + "."
       : "";
-  return `<div class="notice">No pudimos actualizar desde Internet. Mostramos información local.${esc(stamp)} Puedes volver a consultar cuando haya conexión.</div>`;
+  const retry =
+    typeof navigator !== "undefined" && navigator.onLine
+      ? ' <button type="button" class="text-button" data-retry>Reintentar ahora</button>'
+      : "";
+  return `<div class="notice offline-note" data-offline-note="true" aria-live="polite">No pudimos actualizar desde Internet. Mostramos información local.${esc(stamp)} Puedes volver a consultar cuando haya conexión.${retry}</div>`;
 }
 export function empty(h, p, i = "bookmark") {
   return `<div class="empty">${icon(i)}<h2>${esc(h)}</h2><p>${esc(p)}</p></div>`;
