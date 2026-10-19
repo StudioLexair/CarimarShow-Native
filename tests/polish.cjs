@@ -72,6 +72,7 @@ const BASE = process.env.BASE || "http://localhost:8083";
   );
   await page.locator('[data-list-tab="tv"]').click();
   await page.waitForURL(/#list\/tv$/);
+  await page.locator('[data-list-tab="tv"].active').waitFor();
   const tvStatus = page.locator("[data-list-status]").first();
   assert.equal(await page.locator("[data-list-status]").count(), 1);
   assert.deepEqual(
