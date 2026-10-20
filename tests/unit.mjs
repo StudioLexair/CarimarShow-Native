@@ -31,6 +31,7 @@ import {
   normalizeListStatus,
 } from "../public/app/modules/core-model.mjs";
 import { validateResponse } from "../public/app/modules/core-validation.mjs";
+import { imageProxyUrl } from "../public/app/modules/services-image-proxy.mjs";
 const require = createRequire(import.meta.url),
   { validateQuery, limiter, validPayload } = require("../lib/tmdb-policy.cjs");
 const items = [
@@ -465,9 +466,9 @@ test("native retirado: proxy y allowlists nativas usan únicamente el dominio co
 
 test("landing Android: el botón usa la descarga del dominio propio en la pestaña actual", () => {
   const html = fs.readFileSync("public/index.html", "utf8");
-  assert.ok(html.includes("Versión actual: 2.2.6"));
-  assert.ok(html.includes("Versión 2.2.6 · Android"));
-  assert.ok(html.includes("Versión 2.2.6 · Windows"));
+  assert.ok(html.includes("Versión actual: 2.2.7"));
+  assert.ok(html.includes("Versión 2.2.7 · Android"));
+  assert.ok(html.includes("Versión 2.2.7 · Windows"));
   assert.ok(html.includes("/releases/latest/download/CarimarShow-Windows-x64-Setup.exe"));
   const buttonIndex = html.indexOf("Descargar APK");
   assert.ok(buttonIndex >= 0, "Debe existir el enlace Descargar APK");
@@ -490,7 +491,7 @@ test("descarga Android: el dominio propio resuelve el asset firmado y salta la p
         ok: false,
         headers: {
           get: () =>
-            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.6/CarimarShow-Android.apk",
+            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.7/CarimarShow-Android.apk",
         },
       };
     if (calls.length === 2)
@@ -545,9 +546,9 @@ test("descarga Android: rechaza métodos y redirecciones fuera de GitHub", async
   assert.equal(calls, 1);
 });
 
-test("candidato 2.2.6: versiones de Android, Windows y web están alineadas", () => {
+test("candidato 2.2.7: versiones de Android, Windows y web están alineadas", () => {
   const version = JSON.parse(fs.readFileSync("package.json", "utf8")).version;
-  assert.equal(version, "2.2.6");
+  assert.equal(version, "2.2.7");
   for (const [file, marker] of [
     ["public/app/config.js", "version:'" + version + "'"],
     ["android/app/build.gradle.kts", 'versionName = "' + version + '"'],
@@ -565,16 +566,122 @@ test("PWA: el shell acompaña la versión pública y startup conserva revisiones
     shell = worker.match(/const SHELL = "([^"]+)"/)?.[1];
   assert.ok(shell, "Debe existir un nombre de caché para la aplicación web");
   assert.ok(shell.startsWith("carimarshow-shell-v" + version + "-"), "A code correction should revise the shell cache without inventing a public version");
+  assert.ok(worker.includes('"modules/services-image-proxy.mjs"'), "The offline shell must precache the image proxy client module");
   const startup = fs.readFileSync("public/app/startup.mjs", "utf8");
   assert.ok(startup.includes('name !== shellVersion'));
   assert.ok(startup.includes('!name.startsWith(shellVersion + "-")'), "Startup must preserve suffix revisions of the current shell");
 });
 
-test("imágenes TMDB: la carga directa evita placeholders cuando falla el cache CORS", () => {
-  const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8");
+test("imágenes TMDB: la presentación directa conserva fallback y el cache usa el proxy", () => {
+  const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8"),
+    downloads = fs.readFileSync("public/app/modules/services-downloads.mjs", "utf8");
   assert.ok(source.includes("https://image.tmdb.org/t/p/${size}${p}"));
   assert.ok(source.includes('i.addEventListener("error", fallback, { once: true })'));
-  assert.ok(source.includes('fetch("https://image.tmdb.org/t/p/" + k'));
+  assert.ok(source.includes("imageProxyUrl(k)"));
+  assert.ok(downloads.includes("imageProxyUrl(ik)"));
+  assert.ok(!source.includes('fetch("https://image.tmdb.org/t/p/" + k'));
+  assert.ok(!downloads.includes('fetch("https://image.tmdb.org/t/p/" + ik'));
+});
+
+test("proxy de imágenes: URL con tamaños y rutas TMDB permitidas, sin traversal", () => {
+  const previous = globalThis.window;
+  globalThis.window = {
+    CARIMAR_CONFIG: { apiOrigin: "https://carimarshow.vercel.app/" },
+  };
+  try {
+    const url = imageProxyUrl("w185/abc-123.jpg");
+    assert.equal(
+      url,
+      "https://carimarshow.vercel.app/api/tmdb-image?size=w185&path=%2Fabc-123.jpg",
+    );
+    assert.equal(imageProxyUrl("original/abc.jpg"), "");
+    assert.equal(imageProxyUrl("w185/../secret.jpg"), "");
+    assert.equal(imageProxyUrl("w185/abc.svg"), "");
+    assert.equal(imageProxyUrl(null), "");
+  } finally {
+    if (previous === undefined) delete globalThis.window;
+    else globalThis.window = previous;
+  }
+});
+
+test("proxy de imágenes: restringe CORS, valida ruta y tamaño, devuelve una imagen pública acotada", async () => {
+  const { createHandler } = require("../api/tmdb-image.js");
+  const makeResponse = () => ({
+    headers: {},
+    statusCode: 0,
+    body: null,
+    setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+    end(body) { this.body = body; },
+  });
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({ url, options });
+    return new Response(Buffer.from("fake-jpeg"), {
+      status: 200,
+      headers: { "Content-Type": "image/jpeg" },
+    });
+  };
+  const handler = createHandler(fakeFetch);
+  let res = makeResponse();
+  await handler(
+    { method: "OPTIONS", headers: { origin: "https://appassets.androidplatform.net" }, query: {} },
+    res,
+  );
+  assert.equal(res.statusCode, 204);
+  assert.equal(res.headers["access-control-allow-methods"], "GET, OPTIONS");
+  assert.equal(calls.length, 0);
+  res = makeResponse();
+  await handler({ method: "POST", headers: {}, query: {} }, res);
+  assert.equal(res.statusCode, 405);
+  res = makeResponse();
+  await handler(
+    {
+      method: "GET",
+      headers: { origin: "https://appassets.androidplatform.net" },
+      query: { size: "w185", path: "/abc.jpg" },
+    },
+    res,
+  );
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers["access-control-allow-origin"], "https://appassets.androidplatform.net");
+  assert.equal(res.headers["content-type"], "image/jpeg");
+  assert.match(res.headers["cache-control"], /s-maxage=86400/);
+  assert.equal(res.headers["x-content-type-options"], "nosniff");
+  assert.deepEqual(res.body, Buffer.from("fake-jpeg"));
+  assert.equal(calls[0].url, "https://image.tmdb.org/t/p/w185/abc.jpg");
+  assert.equal(calls[0].options.redirect, "error");
+
+  res = makeResponse();
+  await handler(
+    { method: "GET", headers: { origin: "https://evil.test" }, query: { size: "w185", path: "/abc.jpg" } },
+    res,
+  );
+  assert.equal(res.statusCode, 403);
+  assert.equal(calls.length, 1);
+  res = makeResponse();
+  await handler(
+    { method: "GET", headers: {}, query: { size: "original", path: "/abc.jpg" } },
+    res,
+  );
+  assert.equal(res.statusCode, 400);
+  res = makeResponse();
+  await handler(
+    { method: "GET", headers: {}, query: { size: "w185", path: "/../secret.jpg" } },
+    res,
+  );
+  assert.equal(res.statusCode, 400);
+  assert.equal(calls.length, 1);
+
+  const htmlHandler = createHandler(async () => new Response("not an image", {
+    status: 200,
+    headers: { "Content-Type": "text/html" },
+  }));
+  res = makeResponse();
+  await htmlHandler(
+    { method: "GET", headers: {}, query: { size: "w185", path: "/abc.jpg" } },
+    res,
+  );
+  assert.equal(res.statusCode, 502);
 });
 
 test("Windows: la ventana usa un icono PNG decodificable por WPF", () => {

@@ -4,6 +4,7 @@ import { BASE } from "./core-config.mjs";
 import { dbGet, dbPut } from "./storage-cache.mjs";
 import { syncSaved } from "./services-library.mjs";
 import { icons } from "./ui-icons.mjs";
+import { imageProxyUrl } from "./services-image-proxy.mjs";
 export const placeholder =
   "data:image/svg+xml," +
   encodeURIComponent(
@@ -31,7 +32,9 @@ export async function hydrateImage(img) {
   let blob = (await dbGet("pinnedImages", k)) || (await dbGet("images", k));
   if (!blob && !img.dataset.bundled && navigator.onLine) {
     try {
-      const r = await fetch("https://image.tmdb.org/t/p/" + k, {
+      const url = imageProxyUrl(k);
+      if (!url) return;
+      const r = await fetch(url, {
         signal: AbortSignal.timeout(10000),
       });
       if (r.ok) {

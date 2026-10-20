@@ -9,7 +9,7 @@ android {
         targetSdk = 35
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = (System.getenv("APP_BUILD_NUMBER") ?: "1").toInt()
-        versionName = "2.2.6"
+        versionName = "2.2.7"
     }
     signingConfigs {
         create("release") {

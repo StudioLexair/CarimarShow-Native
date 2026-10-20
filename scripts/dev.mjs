@@ -2,13 +2,17 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-const require=createRequire(import.meta.url), api=require('../api/tmdb.js'), downloadApk=require('../api/download-apk.js');
+const require=createRequire(import.meta.url), api=require('../api/tmdb.js'), imageProxy=require('../api/tmdb-image.js'), downloadApk=require('../api/download-apk.js');
 const root=path.resolve('public');
 const types={'.mjs':'text/javascript; charset=utf-8','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
 http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
  if(url.pathname==='/api/download-apk'){
    await downloadApk(req,res);return;
+ }
+ if(url.pathname==='/api/tmdb-image'){
+   req.query=Object.fromEntries(url.searchParams);
+   await imageProxy(req,res);return;
  }
  if(url.pathname==='/api/tmdb'){
    if (!process.env.TMDB_READ_TOKEN) {

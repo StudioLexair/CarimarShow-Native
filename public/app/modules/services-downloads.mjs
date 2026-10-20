@@ -6,6 +6,7 @@ import { dbPut, dbGet, dbDelete } from "./storage-cache.mjs";
 
 import { BASE } from "./core-config.mjs";
 import { icon } from "./ui-icons.mjs";
+import { imageProxyUrl } from "./services-image-proxy.mjs";
 const activeDownloads = new Set();
 export const hasActiveDownloads = () => activeDownloads.size > 0;
 export async function downloadItem(m) {
@@ -39,7 +40,9 @@ export async function downloadItem(m) {
       let blob,
         imageDate = Date.now();
       try {
-        const r = await fetch("https://image.tmdb.org/t/p/" + ik, {
+        const imageUrl = imageProxyUrl(ik);
+        if (!imageUrl) throw Error("Ruta de imagen no válida");
+        const r = await fetch(imageUrl, {
           signal: AbortSignal.timeout(10000),
         });
         if (!r.ok) throw Error("Imagen no disponible");

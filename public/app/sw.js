@@ -1,4 +1,4 @@
-const SHELL = "carimarshow-shell-v2.2.6-detail-explore2",
+const SHELL = "carimarshow-shell-v2.2.7-offline-images1",
   CONTENT = "carimarshow-content-v2.1.0",
   BASE = "/app/",
   MAX_AGE = 150 * 86400000;
@@ -29,6 +29,7 @@ const CORE = [
   "modules/services-details.mjs",
   "modules/services-downloads.mjs",
   "modules/services-fallback.mjs",
+  "modules/services-image-proxy.mjs",
   "modules/services-library.mjs",
   "modules/services-orders.mjs",
   "modules/services-platform.mjs",

@@ -34,6 +34,7 @@ jobs:
           node tests/polish.cjs
           node tests/profile-genres.cjs
           node tests/client-feedback.cjs
+          node tests/downloads.cjs
   android-insets:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'web' }}
     strategy:
