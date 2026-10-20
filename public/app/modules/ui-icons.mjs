@@ -15,6 +15,8 @@ export const SVG = {
   back: '<path d="m12 5-7 7 7 7M5 12h15"/>',
   arrow: '<path d="m9 5 7 7-7 7"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  expand: '<path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/><path d="M9 9 3 3m12 6 6-6M9 15l-6 6m12-6 6 6"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
   play: '<path d="m8 4 12 8-12 8z"/>',
   share: '<path d="M5 11v9h14v-9M12 15V3m-4 4 4-4 4 4"/>',

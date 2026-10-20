@@ -1,4 +1,4 @@
-const SHELL = "carimarshow-shell-v2.2.4-fix2",
+const SHELL = "carimarshow-shell-v2.2.4-fix3",
   CONTENT = "carimarshow-content-v2.1.0",
   BASE = "/app/",
   MAX_AGE = 150 * 86400000;
@@ -39,6 +39,7 @@ const CORE = [
   "modules/ui-dom.mjs",
   "modules/ui-icons.mjs",
   "modules/ui-images.mjs",
+  "modules/ui-lightbox.mjs",
   "modules/ui-orders.mjs",
   "modules/ui-sheet.mjs",
   "modules/views-catalog.mjs",

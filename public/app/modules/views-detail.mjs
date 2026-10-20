@@ -23,8 +23,21 @@ import {
 } from "./ui-components.mjs";
 import { image, hydrate } from "./ui-images.mjs";
 import { icon } from "./ui-icons.mjs";
+import { bindImageViewer } from "./ui-lightbox.mjs";
 import { $ } from "./ui-dom.mjs";
 import { api } from "./services-api.mjs";
+
+function zoomableImage(className, path, size, alt, label) {
+  const imageHtml = image(path, size, alt, className.includes("detail-poster") ? "detail-poster-image" : "detail-image"),
+    original =
+      typeof path === "string" && /^\/[\w.-]+$/.test(path)
+        ? `https://image.tmdb.org/t/p/original${path}`
+        : "";
+  return original
+    ? `<button type="button" class="${className}" data-image-zoom data-image-zoom-src="${esc(original)}" data-image-zoom-alt="${esc(label)}" aria-label="Ampliar ${esc(label)}">${imageHtml}<span class="image-zoom-hint" aria-hidden="true">${icon("expand")}</span></button>`
+    : `<div class="${className}">${imageHtml}</div>`;
+}
+
 export async function detail(type, id, rev, initialTab = "description") {
   if (!["movie", "tv"].includes(type) || !/^\d+$/.test(id))
     throw Error("Ficha no válida");
@@ -51,20 +64,24 @@ export async function detail(type, id, rev, initialTab = "description") {
   const visualClass = hasBackdrop
     ? "detail-visual"
     : "detail-visual detail-visual--poster-fallback";
-  const backdropMarkup = `<div class="detail-backdrop">${image(
-    d.backdrop_path || d.poster_path,
-    hasBackdrop ? "w780" : "w342",
-    "",
-    "detail-image",
-  )}</div>`;
-  const posterMarkup = d.poster_path
-    ? `<div class="detail-poster-frame">${image(
-        d.poster_path,
-        "w500",
-        `Póster de ${title(d)}`,
-        "detail-poster-image",
-      )}</div>`
-    : "";
+  const backdropPath = d.backdrop_path || d.poster_path,
+    backdropLabel = `${hasBackdrop ? "Banner" : "Imagen"} de ${title(d)}`,
+    backdropMarkup = zoomableImage(
+      "detail-backdrop",
+      backdropPath,
+      hasBackdrop ? "w780" : "w342",
+      backdropLabel,
+      backdropLabel,
+    ),
+    posterMarkup = d.poster_path
+      ? zoomableImage(
+          "detail-poster-frame",
+          d.poster_path,
+          "w500",
+          `Póster de ${title(d)}`,
+          `Póster de ${title(d)}`,
+        )
+      : "";
   setView(
     `<article class="${detailPageClass}"><div class="detail-layout"><div><div class="${visualClass}" data-has-backdrop="${hasBackdrop}">${backdropMarkup}${posterMarkup}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
       d.genres?.length
@@ -88,6 +105,7 @@ export async function detail(type, id, rev, initialTab = "description") {
         "",
       )}</div><div id="detailContent" role="tabpanel"></div></section></div></article>`,
   );
+  bindImageViewer(document.querySelector(".detail-visual"));
   let tabRevision = 0;
   async function show(tab) {
     const seq = ++tabRevision;

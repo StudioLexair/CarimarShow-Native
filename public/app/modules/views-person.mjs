@@ -11,15 +11,32 @@ import {
 } from "./ui-components.mjs";
 import { image } from "./ui-images.mjs";
 import { icon } from "./ui-icons.mjs";
-import { esc, personFilmography } from "./core-model.mjs";
+import {
+  esc,
+  kind,
+  personCreditRole,
+  personFilmography,
+  title,
+  year,
+} from "./core-model.mjs";
 import { $, toast } from "./ui-dom.mjs";
 import { localPut } from "./storage-local.mjs";
 function filmographyScope(person) {
   if (person.known_for_department === "Acting")
-    return "Créditos de actuación en películas y series; se omiten documentales, entrevistas, noticias y telerrealidad.";
+    return "Créditos de actuación en películas y series; se omiten documentales, noticias, telerrealidad y apariciones de autopresentación o como invitado.";
   if (!person.known_for_department)
-    return "Créditos principales de películas y series; se omiten documentales, entrevistas, noticias y telerrealidad.";
+    return "Créditos principales de películas y series; se omiten documentales, noticias, telerrealidad y apariciones de autopresentación o como invitado.";
   return `Créditos del área ${person.known_for_department}.`;
+}
+function filmographyRows(items) {
+  return `<div class="filmography-list" role="list">${items
+    .map((credit) => {
+      const releaseYear = year(credit),
+        label = personCreditRole(credit),
+        mediaLabel = kind(credit) === "tv" ? "Serie" : "Película";
+      return `<article class="filmography-row" role="listitem"><span class="filmography-year"${releaseYear !== "—" ? ` data-year="${esc(releaseYear)}"` : ""}>${esc(releaseYear)}</span><div class="filmography-entry"><a class="filmography-title" href="#detail/${kind(credit)}/${credit.id}">${esc(title(credit))}</a><span class="filmography-meta">${mediaLabel}${label ? " · " + esc(label) : ""}</span></div></article>`;
+    })
+    .join("")}</div>`;
 }
 export async function person(id, rev) {
   if (!/^\d+$/.test(id)) throw Error("Persona no válida");
@@ -80,7 +97,7 @@ export async function filmography(id, rev) {
   const items = personFilmography(p, c);
   remember(items);
   const content = items.length
-    ? `<p class="muted tiny filmography-note">${esc(filmographyScope(p))}</p>${cards(items)}`
+    ? `<p class="muted tiny filmography-note">${esc(filmographyScope(p))} Ordenada de más reciente a más antigua.</p>${filmographyRows(items)}`
     : empty(
         c._unavailable ? "Filmografía no guardada" : "Sin títulos disponibles",
         c._unavailable

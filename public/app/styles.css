@@ -28,3 +28,36 @@
 
 /* Mi Lista: seguimiento individual por película o serie. */
 .list-status{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:9px;color:var(--muted);font-size:10px}.list-status select{width:100%;max-width:180px;min-width:0;padding:7px 10px;border:1px solid #668da845;border-radius:8px;background:#15384d;color:#edf8ff}
+
+/* Filmografía completa: lista legible por año y papel, en el mismo orden del perfil. */
+.filmography-list{display:grid;border-top:1px solid var(--line);margin:10px 0 24px}
+.filmography-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:start;padding:12px 5px;border-bottom:1px solid var(--line)}
+.filmography-year{color:#8eabc2;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.55}
+.filmography-entry{min-width:0}
+.filmography-title{display:inline-block;color:#edf8ff;font-size:13px;font-weight:650;line-height:1.45;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;overflow-wrap:anywhere}
+.filmography-title:hover,.filmography-title:focus-visible{color:var(--cyan);text-decoration-color:currentColor}
+.filmography-meta{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:390px){.filmography-row{grid-template-columns:42px minmax(0,1fr);gap:9px;padding:11px 3px}.filmography-title{font-size:12px}}
+
+/* Banner and poster controls open a keyboard-operable high-resolution viewer. */
+.detail-backdrop{z-index:0;padding:0;border:0;display:block;width:100%;height:100%;color:inherit;text-align:left;line-height:0;cursor:zoom-in}
+.detail-backdrop:not([data-image-zoom]),.detail-poster-frame:not([data-image-zoom]){cursor:default}
+.detail-backdrop:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,var(--bg) 1%,transparent 78%),linear-gradient(180deg,#00121b99,transparent 28%)}
+.detail-backdrop>.detail-image{z-index:0}
+.detail-visual:after{z-index:-1}
+.detail-poster-frame{z-index:1;padding:0;color:inherit;line-height:0;cursor:zoom-in}
+.detail-visual .floating-tools{z-index:2}
+.image-zoom-hint{position:absolute;right:9px;bottom:9px;z-index:2;width:32px;height:32px;display:grid;place-items:center;border:1px solid #ffffff70;border-radius:50%;background:#031522d9;color:#f2fbff;box-shadow:0 2px 12px #0007;opacity:.92;transition:transform .18s,background .18s}
+.image-zoom-hint .icon{width:17px;height:17px}
+.image-zoom-trigger:hover .image-zoom-hint,.image-zoom-trigger:focus-visible .image-zoom-hint{background:#00556a;transform:scale(1.08)}
+.detail-poster-frame .image-zoom-hint{width:27px;height:27px;right:6px;bottom:6px}
+.detail-poster-frame .image-zoom-hint .icon{width:15px;height:15px}
+.image-viewer{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:var(--text);overflow:hidden}
+.image-viewer::backdrop{background:rgba(0,8,16,.94);backdrop-filter:blur(7px)}
+.image-viewer-panel{position:relative;width:100%;height:100%;height:100dvh;min-height:100vh;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 18px) calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 58px) calc(env(safe-area-inset-left,0px) + 14px);pointer-events:none}
+.image-viewer-image{display:block;max-width:100%;max-height:calc(100vh - 82px);max-height:calc(100dvh - 82px);object-fit:contain;border-radius:4px;background:#071b29;box-shadow:0 18px 70px #000a;pointer-events:auto}
+.image-viewer-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px);z-index:2;width:46px;height:46px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:50%;background:#062033eb;color:#f4fbff;pointer-events:auto}
+.image-viewer-close .icon{width:22px;height:22px}
+.image-viewer-caption{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 11px);margin:0;color:#d5e7f3;font-size:11px;text-align:center;text-shadow:0 2px 7px #000;pointer-events:none}
+.image-viewer--cached-fallback .image-viewer-caption{color:#f2c46f}
+@media(max-width:700px){.detail-backdrop:after{background:linear-gradient(0deg,var(--bg) 1%,transparent 78%),linear-gradient(180deg,#00121b99,transparent 28%)}.image-viewer-close{width:44px;height:44px}.image-viewer-image{max-height:calc(100vh - 75px);max-height:calc(100dvh - 75px)}}

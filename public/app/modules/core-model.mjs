@@ -47,9 +47,43 @@ export function duration(d) {
 
 const NON_FILMOGRAPHY_GENRES = new Set([99, 10763, 10764, 10767]);
 
+function isNonFictionRole(value, personName) {
+  const normalize = (text) =>
+      String(text || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase(),
+    role = normalize(value),
+    name = normalize(personName),
+    selfAppearance = /^(?:as\s+)?(?:self|himself|herself|themselves)(?:$|\s*(?:\(|\[|[-,:/.])|\s+(?:archive|in|at|voice|on|as|uncredited)\b)/.test(
+      role,
+    ),
+    localizedSelf = /^(?:el mismo|ella misma|ellos mismos|ellas mismas)(?:$|\s*(?:\(|\[|[-,:/.])|\s+(?:archivo|en|como|voz)\b)/.test(
+      role,
+    ),
+    guestAppearance = /^(?:guest|host|presenter)(?:$|\s+(?:host|star|of|on|at|appearance|interview)\b)/.test(
+      role,
+    ),
+    appearanceLabel = /\b(?:special\s+)?guest\s+star\b|\b(?:special\s+)?appearance(?:\s+by)?\b|\bcameo\b/.test(
+      role,
+    );
+  return (
+    selfAppearance ||
+    localizedSelf ||
+    guestAppearance ||
+    appearanceLabel ||
+    (!!name && role === name)
+  );
+}
+
+export const personCreditRole = (credit) =>
+  String(credit?.character || credit?.job || "").trim();
+
 // Keep the profile preview and "Ver todo" on the same filtered credits.
-// Actors use cast roles, excluding documentaries and non-fiction programmes;
-// other professionals use crew credits from their TMDB department.
+// Actors use cast roles, excluding documentaries and non-fiction programmes,
+// including self/host appearances when TMDB omitted genre_ids; other staff use
+// only crew credits from their TMDB department.
 export function personFilmography(person, credits) {
   const department = String(person?.known_for_department || ""),
     isActing = !department || department === "Acting",
@@ -83,7 +117,8 @@ export function personFilmography(person, credits) {
       continue;
     if (
       isActing &&
-      (credit.genre_ids || []).some((id) => NON_FILMOGRAPHY_GENRES.has(Number(id)))
+      ((credit.genre_ids || []).some((id) => NON_FILMOGRAPHY_GENRES.has(Number(id))) ||
+        isNonFictionRole(credit.character, person?.name))
     )
       continue;
     const key = `${mediaType}:${credit.id}`;
@@ -93,7 +128,7 @@ export function personFilmography(person, credits) {
   }
   const dateOf = (credit) => {
     const date = Date.parse(credit.release_date || credit.first_air_date || "");
-    return Number.isFinite(date) ? date : 0;
+    return Number.isFinite(date) ? date : Number.NEGATIVE_INFINITY;
   };
   return rows.sort(
     (a, b) =>

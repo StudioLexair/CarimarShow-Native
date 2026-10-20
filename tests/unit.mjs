@@ -25,6 +25,7 @@ import {
   kind,
   title,
   esc,
+  personCreditRole,
   personFilmography,
   listStatusOptions,
   normalizeListStatus,
@@ -160,6 +161,13 @@ test("filmografía: créditos de actuación limpios, ordenados y separados de ot
       { id: 3, name: "Programa de entrevistas", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10767] },
       { id: 4, name: "Noticias", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10763] },
       { id: 5, name: "Telerrealidad", media_type: "tv", first_air_date: "2025-01-01", genre_ids: [10764] },
+      { id: 13, name: "Netflix Tudum 2025", media_type: "tv", first_air_date: "2025-06-01", character: "Self" },
+      { id: 14, title: "Especial de comedia", media_type: "movie", release_date: "2025-04-01", genre_ids: [35], character: "Himself" },
+      { id: 15, title: "Drama ficticio", media_type: "movie", release_date: "1999-04-01", character: "Self Made" },
+      { id: 16, title: "Autopresentación", media_type: "movie", release_date: "2025-05-01", character: "As Herself (archive footage)" },
+      { id: 17, name: "El show de los Teleñecos", media_type: "tv", first_air_date: "1976-09-01", genre_ids: [35, 10751], character: "Actor Ejemplo - Special Guest Star" },
+      { id: 18, title: "Aparición propia", media_type: "movie", release_date: "2024-01-01", character: "Actor Ejemplo" },
+      { id: 19, title: "Año no informado", media_type: "movie", character: "Papel desconocido" },
       { id: 9, title: "Documental sobre otra persona", media_type: "movie", release_date: "2025-03-01", genre_ids: [99] },
       { id: 1, title: "Película duplicada", media_type: "movie", release_date: "2000-01-01" },
       { id: 6, title: "Contenido adulto", media_type: "movie", adult: true },
@@ -170,9 +178,14 @@ test("filmografía: créditos de actuación limpios, ordenados y separados de ot
       { id: 10, title: "Trabajo de montaje", media_type: "movie", department: "Editing" },
     ],
   };
-  const acting = personFilmography({ known_for_department: "Acting" }, credits);
-  assert.deepEqual(acting.map((m) => m.id), [2, 1]);
-  assert.deepEqual(acting.map((m) => m.media_type), ["tv", "movie"]);
+  const acting = personFilmography(
+    { name: "Actor Ejemplo", known_for_department: "Acting" },
+    credits,
+  );
+  assert.deepEqual(acting.map((m) => m.id), [2, 1, 15, 19]);
+  assert.deepEqual(acting.map((m) => m.media_type), ["tv", "movie", "movie", "movie"]);
+  assert.equal(personCreditRole({ character: "Bruce Wayne", job: "Actor" }), "Bruce Wayne");
+  assert.equal(personCreditRole({ job: "Director" }), "Director");
   const directing = personFilmography(
     { known_for_department: "Directing" },
     {
@@ -184,7 +197,10 @@ test("filmografía: créditos de actuación limpios, ordenados y separados de ot
     },
   );
   assert.deepEqual(directing.map((m) => m.id), [11]);
-  assert.deepEqual(personFilmography({}, credits).map((m) => m.id), [2, 1]);
+  assert.deepEqual(
+    personFilmography({ name: "Actor Ejemplo" }, credits).map((m) => m.id),
+    [2, 1, 15, 19],
+  );
 });
 test("proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansión arbitraria", () => {
   for (const q of [

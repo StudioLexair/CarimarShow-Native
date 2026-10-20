@@ -42,7 +42,7 @@ const BASE = process.env.BASE || "http://localhost:8083";
   await p.evaluate(() => { window.__sharedPayload = null; });
   await p.locator(".actor-actions a").click();
   await p.locator(".page-head").waitFor();
-  await p.locator("#view .poster-link").first().click();
+  await p.locator("#view .filmography-list .filmography-title").first().click();
   await p.locator(".detail-heading").waitFor();
   await p.locator(".floating-tools [data-back]").click();
   await p.waitForURL(/#filmography\//);
