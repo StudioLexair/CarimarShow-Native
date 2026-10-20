@@ -29,15 +29,24 @@
 /* Mi Lista: seguimiento individual por película o serie. */
 .list-status{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:9px;color:var(--muted);font-size:10px}.list-status select{width:100%;max-width:180px;min-width:0;padding:7px 10px;border:1px solid #668da845;border-radius:8px;background:#15384d;color:#edf8ff}
 
-/* Filmografía completa: lista legible por año y papel, en el mismo orden del perfil. */
-.filmography-list{display:grid;border-top:1px solid var(--line);margin:10px 0 24px}
-.filmography-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:start;padding:12px 5px;border-bottom:1px solid var(--line)}
-.filmography-year{color:#8eabc2;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.55}
-.filmography-entry{min-width:0}
-.filmography-title{display:inline-block;color:#edf8ff;font-size:13px;font-weight:650;line-height:1.45;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;overflow-wrap:anywhere}
-.filmography-title:hover,.filmography-title:focus-visible{color:var(--cyan);text-decoration-color:currentColor}
-.filmography-meta{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.5;overflow-wrap:anywhere}
-@media(max-width:390px){.filmography-row{grid-template-columns:42px minmax(0,1fr);gap:9px;padding:11px 3px}.filmography-title{font-size:12px}}
+/* Filmografía visual: póster, año y crédito en tarjetas accesibles. */
+.filmography-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 15px;margin:10px 0 26px}
+.filmography-card{min-width:0;overflow:hidden;border:1px solid #52718a66;border-radius:14px;background:linear-gradient(155deg,#0b293d,#061b2a);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.filmography-card:hover{transform:translateY(-2px);border-color:#00c9ed8c;box-shadow:0 11px 25px #0004}
+.filmography-card-link{display:flex;height:100%;flex-direction:column;color:inherit;text-decoration:none}
+.filmography-poster-wrap{position:relative;display:block;aspect-ratio:2/3;overflow:hidden;background:#0c2a3e}
+.filmography-poster{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
+.filmography-card:hover .filmography-poster,.filmography-card-link:focus-visible .filmography-poster{transform:scale(1.035)}
+.filmography-year{position:absolute;top:9px;left:9px;z-index:1;padding:3px 9px;border:1px solid #00c9ed;border-radius:999px;background:#031522e8;color:#edf8ff;font-size:11px;font-weight:700;line-height:1.4;font-variant-numeric:tabular-nums;box-shadow:0 2px 10px #0006}
+.filmography-card-copy{display:grid;align-content:start;gap:5px;min-width:0;flex:1;padding:11px 12px 13px}
+.filmography-title{display:block;color:#edf8ff;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+.filmography-meta{display:block;color:var(--muted);font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.filmography-type{color:var(--cyan);font-weight:650}
+.filmography-role{color:var(--muted)}
+.filmography-card-link:focus-visible{outline:2px solid var(--cyan);outline-offset:-3px;border-radius:13px}
+@media(max-width:1000px){.filmography-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px 12px}}
+@media(max-width:700px){.filmography-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 11px}.filmography-card-copy{padding:10px 10px 11px}.filmography-title{font-size:12px}}
+@media(max-width:390px){.filmography-list{gap:12px 9px}.filmography-year{top:7px;left:7px;padding:2px 7px;font-size:10px}.filmography-card-copy{padding:9px 8px 10px}.filmography-title{font-size:11px}}
 
 /* Banner and poster controls open a keyboard-operable high-resolution viewer. */
 .detail-backdrop{z-index:0;padding:0;border:0;display:block;width:100%;height:100%;color:inherit;text-align:left;line-height:0;cursor:zoom-in}

@@ -564,7 +564,7 @@ test("PWA: el shell acompaña la versión pública y startup conserva revisiones
     worker = fs.readFileSync("public/app/sw.js", "utf8"),
     shell = worker.match(/const SHELL = "([^"]+)"/)?.[1];
   assert.ok(shell, "Debe existir un nombre de caché para la aplicación web");
-  assert.equal(shell, "carimarshow-shell-v" + version);
+  assert.ok(shell.startsWith("carimarshow-shell-v" + version + "-"), "A code correction should revise the shell cache without inventing a public version");
   const startup = fs.readFileSync("public/app/startup.mjs", "utf8");
   assert.ok(startup.includes('name !== shellVersion'));
   assert.ok(startup.includes('!name.startsWith(shellVersion + "-")'), "Startup must preserve suffix revisions of the current shell");

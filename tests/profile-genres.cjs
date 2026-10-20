@@ -199,61 +199,80 @@ fs.mkdirSync(shots, { recursive: true });
   assert.equal(previewCredits.length, 9);
   await page.locator('.actor-actions a[href="#filmography/16483"]').click();
   await page.waitForURL(/#filmography\/16483$/);
-  await page.locator(".filmography-list .filmography-row").first().waitFor();
-  const fullRows = await page.locator(".filmography-list .filmography-row").evaluateAll((rows) =>
-    rows.map((row) => {
-      const link = row.querySelector(".filmography-title"),
-        meta = row.querySelector(".filmography-meta")?.textContent.trim() || "",
-        [type, ...role] = meta.split(" · ");
+  await page.locator(".filmography-list .filmography-card").first().waitFor();
+  const fullCards = await page.locator(".filmography-list .filmography-card").evaluateAll((cards) =>
+    cards.map((card) => {
+      const link = card.querySelector(".filmography-card-link"),
+        poster = card.querySelector(".filmography-poster"),
+        roleText = card.querySelector(".filmography-role")?.textContent.trim() || "";
       return {
-        title: link?.textContent.trim(),
+        title: card.querySelector(".filmography-title")?.textContent.trim(),
         href: link?.getAttribute("href"),
-        year: row.querySelector(".filmography-year")?.textContent.trim(),
-        type,
-        role: role.join(" · "),
+        year: card.querySelector(".filmography-year")?.textContent.trim(),
+        type: card.querySelector(".filmography-type")?.textContent.trim(),
+        role: roleText.replace("·", "").trim(),
+        posterAlt: poster?.getAttribute("alt") || "",
+        posterKey: poster?.dataset.image || "",
+        posterWidth: poster?.getBoundingClientRect().width || 0,
       };
     }),
   );
-  assert.ok(fullRows.length > 9, "The full route should show more than the profile preview");
+  assert.ok(fullCards.length > 9, "The full route should show more than the profile preview");
+  assert.ok(fullCards.every(({ posterAlt, posterWidth }) => posterAlt.startsWith("Portada de ") && posterWidth > 0), "Every filmography card should show an accessible poster image");
+  assert.ok(fullCards.some(({ posterKey }) => posterKey), "TMDB poster paths should be used when available");
+  const mobileGrid = await page.locator(".filmography-list").evaluate((grid) => ({
+    columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+    overflow: document.documentElement.scrollWidth > innerWidth,
+  }));
+  assert.equal(mobileGrid.columns, 2, "The phone layout should use two poster columns");
+  assert.equal(mobileGrid.overflow, false, "The poster grid must not overflow on mobile");
+  await page.setViewportSize({ width: 1280, height: 890 });
+  const desktopGrid = await page.locator(".filmography-list").evaluate((grid) => ({
+    columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+    overflow: document.documentElement.scrollWidth > innerWidth,
+  }));
+  assert.equal(desktopGrid.columns, 4, "The desktop layout should use four poster columns");
+  assert.equal(desktopGrid.overflow, false, "The poster grid must not overflow on desktop");
+  await page.setViewportSize({ width: 584, height: 890 });
   assert.deepEqual(
-    fullRows.slice(0, 9).map(({ title, href, year, type }) => ({ title, href, year, type })),
+    fullCards.slice(0, 9).map(({ title, href, year, type }) => ({ title, href, year, type })),
     previewCredits,
     "Profile preview and full filmography must use identical filters and ordering",
   );
-  assert.ok(fullRows.every(({ href }) => /^#detail\/(?:movie|tv)\/\d+$/.test(href)), "Each credit title should link directly to its movie or series detail");
-  assert.ok(fullRows.some(({ role }) => role), "Acting credits should show character names");
-  const knownYears = fullRows.map(({ year }) => Number(year)).filter(Number.isFinite),
-    firstUnknownYear = fullRows.findIndex(({ year }) => year === "—");
-  assert.deepEqual(knownYears, [...knownYears].sort((a, b) => b - a), "The list should be ordered from newest year to oldest");
-  assert.ok(firstUnknownYear < 0 || fullRows.slice(firstUnknownYear).every(({ year }) => year === "—"), "Credits without a year should follow dated credits");
-  const fullTitles = fullRows.map(({ title }) => title);
+  assert.ok(fullCards.every(({ href }) => /^#detail\/(?:movie|tv)\/\d+$/.test(href)), "Each poster card should link directly to its movie or series detail");
+  assert.ok(fullCards.some(({ role }) => role), "Acting credits should show character names");
+  const knownYears = fullCards.map(({ year }) => Number(year)).filter(Number.isFinite),
+    firstUnknownYear = fullCards.findIndex(({ year }) => year === "—");
+  assert.deepEqual(knownYears, [...knownYears].sort((a, b) => b - a), "The grid should remain ordered from newest year to oldest");
+  assert.ok(firstUnknownYear < 0 || fullCards.slice(firstUnknownYear).every(({ year }) => year === "—"), "Credits without a year should follow dated credits");
+  const fullTitles = fullCards.map(({ title }) => title);
   assert.ok(fullTitles.some((title) => /Tulsa King/i.test(title)));
   assert.ok(!fullTitles.some((title) => /Tonight Show|Late Show|60 Minutes|The View|Family Stallone/i.test(title)), "Talk, news and reality appearances must not pollute the actor filmography");
-  assert.ok(!fullRows.some(({ title, role }) => /Muppet Show|Teleñecos|This Is Us/i.test(title) || /special guest star/i.test(role)), "Self and guest-star appearances must not pollute the acting filmography");
-  const firstCreditHref = fullRows[0].href;
-  await page.locator(".filmography-title").first().click();
+  assert.ok(!fullCards.some(({ title, role }) => /Muppet Show|Teleñecos|This Is Us/i.test(title) || /special guest star/i.test(role)), "Self and guest-star appearances must not pollute the acting filmography");
+  const firstCreditHref = fullCards[0].href;
+  await page.locator(".filmography-card-link").first().click();
   await page.waitForFunction((href) => location.hash === href, firstCreditHref);
   await page.locator(".detail-heading h1").waitFor({ timeout: 30000 });
   await page.evaluate(() => { location.hash = "#filmography/16483"; });
   await page.waitForURL(/#filmography\/16483$/);
-  await page.locator(".filmography-list .filmography-row").first().waitFor();
-  console.log("PASS connected Stallone filmography: year/role rows share profile order and link to detail");
+  await page.locator(".filmography-list .filmography-card").first().waitFor();
+  console.log("PASS connected Stallone filmography: real posters, 2/4-column responsive grid, year/role order and detail links");
   await page.evaluate(() => { location.hash = "#person/16483"; });
   await page.waitForURL(/#person\/16483$/);
   await page.locator(".actor-title h1").waitFor();
   await page.locator('.section-head a[href="#filmography/16483"]').click();
   await page.waitForURL(/#filmography\/16483$/);
-  await page.locator(".filmography-list .filmography-row").first().waitFor();
+  await page.locator(".filmography-list .filmography-card").first().waitFor();
   assert.deepEqual(
-    await page.locator(".filmography-list .filmography-row").evaluateAll((rows) =>
-      rows.map((row) => ({
-        title: row.querySelector(".filmography-title")?.textContent.trim(),
-        href: row.querySelector(".filmography-title")?.getAttribute("href"),
-        year: row.querySelector(".filmography-year")?.textContent.trim(),
+    await page.locator(".filmography-list .filmography-card").evaluateAll((cards) =>
+      cards.map((card) => ({
+        title: card.querySelector(".filmography-title")?.textContent.trim(),
+        href: card.querySelector(".filmography-card-link")?.getAttribute("href"),
+        year: card.querySelector(".filmography-year")?.textContent.trim(),
       })),
     ),
-    fullRows.map(({ title, href, year }) => ({ title, href, year })),
-    "Ver todo must open the same list as Ver filmografía",
+    fullCards.map(({ title, href, year }) => ({ title, href, year })),
+    "Ver todo must open the same visual filmography as Ver filmografía",
   );
   const replay = await page.evaluate(async () => {
     const { dbGet } = await import("./modules/storage-cache.mjs");
@@ -351,7 +370,7 @@ fs.mkdirSync(shots, { recursive: true });
 
     };
   });
-  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.5"], "The updated service worker must replace the prior offline shell");
+  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.5-filmography1"], "The updated service worker must replace the prior offline shell");
   assert.equal(shellState.index, true, "The revisioned shell must retain the offline entry page");
   assert.equal(shellState.app, true, "The revisioned shell must retain the app script");
   assert.equal(shellState.lightbox, true, "The revisioned shell must retain the accessible image viewer module");

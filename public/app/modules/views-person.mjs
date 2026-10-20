@@ -28,13 +28,18 @@ function filmographyScope(person) {
     return "Créditos principales de películas y series; se omiten documentales, noticias, telerrealidad y apariciones de autopresentación o como invitado.";
   return `Créditos del área ${person.known_for_department}.`;
 }
-function filmographyRows(items) {
+function filmographyCards(items) {
   return `<div class="filmography-list" role="list">${items
     .map((credit) => {
       const releaseYear = year(credit),
+        creditTitle = title(credit),
         label = personCreditRole(credit),
-        mediaLabel = kind(credit) === "tv" ? "Serie" : "Película";
-      return `<article class="filmography-row" role="listitem"><span class="filmography-year"${releaseYear !== "—" ? ` data-year="${esc(releaseYear)}"` : ""}>${esc(releaseYear)}</span><div class="filmography-entry"><a class="filmography-title" href="#detail/${kind(credit)}/${credit.id}">${esc(title(credit))}</a><span class="filmography-meta">${mediaLabel}${label ? " · " + esc(label) : ""}</span></div></article>`;
+        mediaLabel = kind(credit) === "tv" ? "Serie" : "Película",
+        yearLabel = releaseYear === "—" ? "Año sin informar" : releaseYear,
+        accessibleLabel = [creditTitle, yearLabel, mediaLabel, label]
+          .filter(Boolean)
+          .join(" · ");
+      return `<article class="filmography-card" role="listitem"><a class="filmography-card-link" href="#detail/${kind(credit)}/${credit.id}" aria-label="Abrir ${esc(accessibleLabel)}"><span class="filmography-poster-wrap">${image(credit.poster_path, "w342", "Portada de " + creditTitle, "filmography-poster")}<span class="filmography-year"${releaseYear !== "—" ? ` data-year="${esc(releaseYear)}"` : ""}>${esc(releaseYear)}</span></span><span class="filmography-card-copy"><span class="filmography-title">${esc(creditTitle)}</span><span class="filmography-meta"><span class="filmography-type">${mediaLabel}</span>${label ? `<span class="filmography-role"> · ${esc(label)}</span>` : ""}</span></span></a></article>`;
     })
     .join("")}</div>`;
 }
@@ -97,7 +102,7 @@ export async function filmography(id, rev) {
   const items = personFilmography(p, c);
   remember(items);
   const content = items.length
-    ? `<p class="muted tiny filmography-note">${esc(filmographyScope(p))} Ordenada de más reciente a más antigua.</p>${filmographyRows(items)}`
+    ? `<p class="muted tiny filmography-note">${esc(filmographyScope(p))} Ordenada de más reciente a más antigua.</p>${filmographyCards(items)}`
     : empty(
         c._unavailable ? "Filmografía no guardada" : "Sin títulos disponibles",
         c._unavailable
