@@ -14,14 +14,15 @@ const BASE = process.env.BASE || "http://localhost:8083";
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+nmWQAAAAASUVORK5CYII=",
     "base64",
   );
-  await page.route("https://image.tmdb.org/t/p/**", (route) =>
+  const mockImage = (route) =>
     route.fulfill({
       status: 200,
       contentType: "image/png",
       headers: { "access-control-allow-origin": "*", "cache-control": "no-store" },
       body: testImage,
-    }),
-  );
+    });
+  await page.route("https://image.tmdb.org/t/p/**", mockImage);
+  await page.route(/\/api\/tmdb-image\?/, mockImage);
   try {
     await page.goto(`${BASE}/app/#home`);
     await page.locator('[data-home-trends="day"]').waitFor({ timeout: 30000 });
