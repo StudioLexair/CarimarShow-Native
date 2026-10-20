@@ -59,7 +59,7 @@ fs.mkdirSync(shots, { recursive: true });
   }
   await page.goto(BASE + "/app/#profile");
   await page.locator(".profile-hero").waitFor();
-  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.6/);
+  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.7/);
   assert.equal(await page.locator(".profile-stats strong").count(), 3);
   assert.equal(await page.locator("#checkUpdate").count(), 1);
   await page.screenshot({ path: shots + "/perfil.png", fullPage: true });
@@ -357,7 +357,7 @@ fs.mkdirSync(shots, { recursive: true });
     await p.locator(".profile-head h2").innerText(),
     "Perfil conservado",
   );
-  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.6/);
+  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.7/);
   await p.evaluate(async () => await navigator.serviceWorker.ready);
   const shellState = await p.evaluate(async () => {
     const names = (await caches.keys()).filter((key) => key.startsWith("carimarshow-shell-")),
