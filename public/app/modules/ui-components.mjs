@@ -51,7 +51,12 @@ export function section(h, to) {
 export function card(m) {
   if (kind(m) === "person")
     return `<a class="person-card" href="#person/${m.id}"><div class="poster-box">${image(m.profile_path, "w185", m.name)}</div><strong>${esc(m.name)}</strong><small>${esc(m.known_for_department || "Actuación")}</small></a>`;
-  return `<article class="card"><div class="poster-box"><a class="poster-link" href="#detail/${kind(m)}/${m.id}" aria-label="Ver ${esc(title(m))}">${image(m.poster_path, "w342", title(m))}</a><button class="save" data-save="${keyOf(m)}" aria-label="Añadir a Mi lista">${icon("plus")}</button></div><h3><a href="#detail/${kind(m)}/${m.id}">${esc(title(m))}</a></h3><div class="subtitle"><span>${kind(m) === "tv" ? "Serie" : "Película"}</span><time>${year(m)}</time></div></article>`;
+  const score = Number(m.vote_average),
+    rating =
+      Number.isFinite(score) && score > 0
+        ? `<span class="card-rating" aria-label="Valoración TMDB ${score.toFixed(1)} sobre 10">★ ${score.toFixed(1)}</span>`
+        : "";
+  return `<article class="card"><div class="poster-box"><a class="poster-link" href="#detail/${kind(m)}/${m.id}" aria-label="Ver ${esc(title(m))}">${image(m.poster_path, "w342", title(m))}</a><button class="save" data-save="${keyOf(m)}" aria-label="Añadir a Mi lista">${icon("plus")}</button></div><h3><a href="#detail/${kind(m)}/${m.id}">${esc(title(m))}</a></h3><div class="subtitle"><span>${kind(m) === "tv" ? "Serie" : "Película"}</span><time>${year(m)}</time>${rating}</div></article>`;
 }
 
 export function cards(items, rail = false) {

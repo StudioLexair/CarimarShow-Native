@@ -83,7 +83,7 @@ export async function detail(type, id, rev, initialTab = "description") {
         )
       : "";
   setView(
-    `<article class="${detailPageClass}"><div class="detail-layout"><div><div class="${visualClass}" data-has-backdrop="${hasBackdrop}">${backdropMarkup}${posterMarkup}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
+    `<article class="${detailPageClass}"><div class="detail-layout"><div class="detail-hero-block"><div class="${visualClass}" data-has-backdrop="${hasBackdrop}">${backdropMarkup}${posterMarkup}<div class="floating-tools"><a data-back class="circle-button" href="#home" aria-label="Volver">${icon("back")}</a><div><button class="circle-button" data-share="${keyOf(d)}" aria-label="Compartir">${icon("share")}</button><button class="circle-button" data-save="${keyOf(d)}" aria-label="Guardar">${icon("plus")}</button></div></div></div><div class="detail-heading"><h1>${esc(title(d))}</h1>${Number(d.vote_count) > 0 ? `<div class="rating">★ ${rating(d)} <span>(${Number(d.vote_count).toLocaleString("es-ES")} valoraciones)</span></div>` : ""}<p class="detail-meta">${kind(d) === "tv" ? "Serie" : "Película"}${year(d) !== "—" ? " · " + year(d) : ""}${duration(d) !== "Duración no informada" ? " · " + duration(d) : ""}${
       d.genres?.length
         ? " · " +
           d.genres
@@ -91,7 +91,7 @@ export async function detail(type, id, rev, initialTab = "description") {
             .map((g) => esc(g.name))
             .join(" · ")
         : ""
-    }</p><div class="detail-actions">${trailers.length ? trailerLink(d, d) : '<button class="primary" ' + (d._videoQueryFailed ? "data-retry" : "disabled") + ' title="Estado del tráiler">' + icon("play") + (d._videoQueryFailed ? "Tráiler no consultado: reintentar" : "Tráiler no disponible") + "</button>"}<button class="square-button" data-save="${keyOf(d)}" aria-label="Añadir a Mi lista">${icon("plus")}</button><button class="square-button" data-download="${keyOf(d)}" aria-label="Guardar ficha offline" title="Guardar ficha offline">${icon(state.downloadMap.has(keyOf(d)) ? "check" : "download")}</button></div></div></div><section><div class="detail-tabs" role="tablist">${[
+    }</p><div class="detail-actions">${trailers.length ? trailerLink(d, d) : '<button class="primary" ' + (d._videoQueryFailed ? "data-retry" : "disabled") + ' title="Estado del tráiler">' + icon("play") + (d._videoQueryFailed ? "Tráiler no consultado: reintentar" : "Tráiler no disponible") + "</button>"}<button class="square-button" data-save="${keyOf(d)}" aria-label="Añadir a Mi lista">${icon("plus")}</button><button class="square-button" data-download="${keyOf(d)}" aria-label="Guardar ficha offline" title="Guardar ficha offline">${icon(state.downloadMap.has(keyOf(d)) ? "check" : "download")}</button></div></div></div><section class="detail-information" aria-label="Contenido de ${esc(title(d))}"><div class="detail-tabs" role="tablist" aria-label="Secciones de la ficha">${[
       ["description", "Descripción"],
       ["cast", "Reparto"],
       ["trailers", "Tráileres"],
@@ -99,27 +99,31 @@ export async function detail(type, id, rev, initialTab = "description") {
     ]
       .map(
         ([k, v]) =>
-          `<button role="tab" data-detail-tab="${k}" aria-selected="${k === selected}" class="${k === selected ? "active" : ""}">${v}</button>`,
+          `<button id="detailTab-${k}" type="button" role="tab" data-detail-tab="${k}" aria-controls="detailContent" aria-selected="${k === selected}" tabindex="${k === selected ? "0" : "-1"}" class="${k === selected ? "active" : ""}">${v}</button>`,
       )
       .join(
         "",
-      )}</div><div id="detailContent" role="tabpanel"></div></section></div></article>`,
+      )}</div><div id="detailContent" class="detail-content" role="tabpanel" aria-labelledby="detailTab-${selected}" tabindex="0"></div></section></div></article>`,
   );
   bindImageViewer(document.querySelector(".detail-visual"));
   let tabRevision = 0;
   async function show(tab) {
     const seq = ++tabRevision;
     document.querySelectorAll("[data-detail-tab]").forEach((b) => {
-      b.classList.toggle("active", b.dataset.detailTab === tab);
-      b.setAttribute("aria-selected", String(b.dataset.detailTab === tab));
+      const active = b.dataset.detailTab === tab;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", String(active));
+      b.tabIndex = active ? 0 : -1;
     });
     const c = $("#detailContent");
     if (!c) return;
+    c.setAttribute("aria-labelledby", "detailTab-" + tab);
     if (tab === "description") {
       const site =
         d.homepage && /^https?:\/\//i.test(d.homepage) ? d.homepage : null;
       c.innerHTML =
         offlineNote(d._offline ? d : null) +
+        section("Descripción") +
         `<p class="description">${esc(d.overview || "No hay sinopsis disponible en español para este título.")}</p>${section("Reparto principal")}${d.credits?.cast?.length ? `<div class="cast-rail">${d.credits.cast.slice(0, 8).map(cast).join("")}</div>` : '<p class="muted tiny">El reparto no está disponible en esta ficha.</p>'}<dl class="info-grid">${originalTitleDiffers ? `<div class="original-title"><dt>Título original</dt><dd lang="${/^[a-z]{2}$/i.test(d.original_language || "") ? esc(d.original_language) : "en"}">${esc(originalTitle.trim())}</dd></div>` : ""}<div><dt>Idioma original</dt><dd>${esc(d.original_language || "No informado")}</dd></div><div><dt>Estado</dt><dd>${esc(statusName(d.status))}</dd></div>${type === "tv" ? `<div><dt>Temporadas</dt><dd>${Number.isFinite(d.number_of_seasons) ? d.number_of_seasons : "No informado"}</dd></div><div><dt>Episodios</dt><dd>${Number.isFinite(d.number_of_episodes) ? d.number_of_episodes : "No informado"}</dd></div>` : ""}${site ? `<div><dt>Sitio oficial</dt><dd><a class="cyan" href="${esc(site)}" target="_blank" rel="noopener">Visitar ${icon("external")}</a></dd></div>` : ""}</dl>`;
     } else if (tab === "cast") {
       c.innerHTML = d.credits?.cast?.length
@@ -167,8 +171,23 @@ export async function detail(type, id, rev, initialTab = "description") {
     }
     hydrate();
   }
-  document
-    .querySelectorAll("[data-detail-tab]")
-    .forEach((b) => (b.onclick = () => show(b.dataset.detailTab)));
+  const tabButtons = Array.from(document.querySelectorAll("[data-detail-tab]"));
+  tabButtons.forEach((button) => {
+    button.onclick = () => show(button.dataset.detailTab);
+  });
+  document.querySelector(".detail-tabs")?.addEventListener("keydown", (event) => {
+    const currentIndex = tabButtons.indexOf(document.activeElement);
+    if (currentIndex < 0) return;
+    let nextIndex;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabButtons.length;
+    else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = tabButtons.length - 1;
+    else return;
+    event.preventDefault();
+    const next = tabButtons[nextIndex];
+    next.focus();
+    show(next.dataset.detailTab);
+  });
   await show(selected);
 }

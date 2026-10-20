@@ -465,9 +465,9 @@ test("native retirado: proxy y allowlists nativas usan únicamente el dominio co
 
 test("landing Android: el botón usa la descarga del dominio propio en la pestaña actual", () => {
   const html = fs.readFileSync("public/index.html", "utf8");
-  assert.ok(html.includes("Versión actual: 2.2.5"));
-  assert.ok(html.includes("Versión 2.2.5 · Android"));
-  assert.ok(html.includes("Versión 2.2.5 · Windows"));
+  assert.ok(html.includes("Versión actual: 2.2.6"));
+  assert.ok(html.includes("Versión 2.2.6 · Android"));
+  assert.ok(html.includes("Versión 2.2.6 · Windows"));
   assert.ok(html.includes("/releases/latest/download/CarimarShow-Windows-x64-Setup.exe"));
   const buttonIndex = html.indexOf("Descargar APK");
   assert.ok(buttonIndex >= 0, "Debe existir el enlace Descargar APK");
@@ -490,7 +490,7 @@ test("descarga Android: el dominio propio resuelve el asset firmado y salta la p
         ok: false,
         headers: {
           get: () =>
-            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.5/CarimarShow-Android.apk",
+            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.6/CarimarShow-Android.apk",
         },
       };
     if (calls.length === 2)
@@ -545,9 +545,9 @@ test("descarga Android: rechaza métodos y redirecciones fuera de GitHub", async
   assert.equal(calls, 1);
 });
 
-test("candidato 2.2.5: versiones de Android, Windows y web están alineadas", () => {
+test("candidato 2.2.6: versiones de Android, Windows y web están alineadas", () => {
   const version = JSON.parse(fs.readFileSync("package.json", "utf8")).version;
-  assert.equal(version, "2.2.5");
+  assert.equal(version, "2.2.6");
   for (const [file, marker] of [
     ["public/app/config.js", "version:'" + version + "'"],
     ["android/app/build.gradle.kts", 'versionName = "' + version + '"'],

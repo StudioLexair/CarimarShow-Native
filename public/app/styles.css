@@ -70,3 +70,127 @@
 .image-viewer-caption{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 11px);margin:0;color:#d5e7f3;font-size:11px;text-align:center;text-shadow:0 2px 7px #000;pointer-events:none}
 .image-viewer--cached-fallback .image-viewer-caption{color:#f2c46f}
 @media(max-width:700px){.detail-backdrop:after{background:linear-gradient(0deg,var(--bg) 1%,transparent 78%),linear-gradient(180deg,#00121b99,transparent 28%)}.image-viewer-close{width:44px;height:44px}.image-viewer-image{max-height:calc(100vh - 75px);max-height:calc(100dvh - 75px)}}
+
+/* Explorar: filtros funcionales, atajos claros y tendencias con pósteres TMDB. */
+.explore-page{max-width:1180px;margin:0 auto}
+.explore-page .page-head{padding-bottom:20px}
+.explore-page .page-head h1{font-size:30px;letter-spacing:-.8px}
+.explore-page .search-form{gap:10px}
+.explore-page .search-box{min-height:56px;padding:12px 16px;background:linear-gradient(120deg,#0d2a3c,#0a2234);border-color:#17627b66;box-shadow:0 8px 24px #0002}
+.explore-page .search-box .icon{color:#a4c3d4}
+.explore-page .search-box input{font-size:13px}
+.explore-page .search-form>.plain-icon{width:50px;height:50px;padding:0;border:1px solid #6d95aa37;border-radius:13px;background:#0b293c;color:#ddecf6;transition:background .16s,border-color .16s,transform .16s}
+.explore-page .search-form>.plain-icon:hover{background:#123a51;border-color:#00c9ed88;transform:translateY(-1px)}
+.explore-page #submitSearch{background:var(--cyan);border-color:var(--cyan);color:#032438}
+.explore-page .explore-type-pills{display:flex;align-items:center;gap:9px;overflow-x:auto;scrollbar-width:none;padding:5px 0 3px;margin:13px 0 0}
+.explore-page .explore-type-pills::-webkit-scrollbar{display:none}
+.explore-page .explore-type-pills button{flex:0 0 auto;min-height:38px;padding:8px 16px;border:1px solid #6d95aa35;border-radius:999px;background:#071d2c;color:#d4e5f1;font-size:12px;white-space:nowrap;transition:background .16s,border-color .16s,color .16s}
+.explore-page .explore-type-pills button:hover{border-color:#00c9ed88}
+.explore-page .explore-type-pills button.active{border-color:var(--cyan);background:var(--cyan);color:#032438;font-weight:750;box-shadow:0 4px 16px #00c9ed28}
+.explore-page .filter-count{margin:5px 0 0;color:#86a5b9;font-size:10px;min-height:15px}
+.explore-page #exploreDefault>section:first-child .section-head{margin-top:20px}
+.explore-page .recent-chips button{background:#0e2b3e;border-color:#64869a35;transition:border-color .16s,background .16s}
+.explore-page .recent-chips button:hover{background:#153b50;border-color:#00c9ed88}
+.explore-page .search-category-grid{gap:14px}
+.explore-page .category-shortcut{min-width:0;min-height:96px;padding:18px 16px;border-color:#5b829744;border-radius:15px;background:linear-gradient(145deg,#0b2b3f,#061d2c);gap:13px;transition:transform .18s,border-color .18s,box-shadow .18s}
+.explore-page .category-shortcut:hover{transform:translateY(-2px);border-color:#00c9ed82;box-shadow:0 12px 28px #0003}
+.explore-page .category-shortcut>.icon:first-child{width:31px;height:31px;color:var(--cyan);filter:drop-shadow(0 0 9px #00c9ed48)}
+.explore-page .category-shortcut:last-child>.icon:first-child{color:#df82ed;filter:drop-shadow(0 0 9px #df82ed42)}
+.explore-page .category-shortcut>.icon:last-child{width:15px;height:15px;margin-left:auto;color:#8ba9bc;opacity:.85}
+.explore-page .category-copy{display:grid;gap:4px;min-width:0}
+.explore-page .category-copy strong{font-size:14px;line-height:1.25;font-weight:720}
+.explore-page .category-copy small{color:#9fb5c5;font-size:10px;line-height:1.45}
+.explore-page .section-head{margin-top:30px}
+.explore-page .section-head h2{font-size:19px}
+#todayTrends .rail{gap:15px;padding:1px 0 9px}
+#todayTrends .rail>.card{width:clamp(132px,15vw,175px)}
+#todayTrends .poster-box{border:1px solid #88a9bd2b;border-radius:13px;box-shadow:0 8px 20px #0003}
+#todayTrends .card h3{display:-webkit-box;min-height:2.7em;overflow:hidden;white-space:normal;text-overflow:ellipsis;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35}
+#todayTrends .card .subtitle{align-items:center;justify-content:flex-start;gap:7px;flex-wrap:wrap}
+#todayTrends .card .subtitle .card-rating{margin-left:auto;color:#f4cf62;font-size:10px;font-weight:700;white-space:nowrap}
+.card .subtitle .card-rating{color:#f4cf62;font-weight:700;white-space:nowrap}
+
+/* Ficha: una portada cinematográfica, datos legibles y pestañas accesibles. */
+.detail-page{max-width:1180px;margin:0 auto 30px}
+.detail-layout{display:block}
+.detail-hero-block{min-width:0}
+.detail-visual{height:clamp(280px,40vw,510px);margin:0;border-radius:18px}
+.detail-page.has-detail-poster .detail-poster-frame{left:clamp(18px,3vw,38px);bottom:-62px;width:clamp(180px,16vw,210px);border-width:3px;border-radius:14px}
+.detail-page.has-detail-poster .detail-heading{margin:87px 0 20px}
+.detail-page:not(.has-detail-poster) .detail-heading{margin:22px 0 20px}
+.detail-heading h1{font-size:clamp(31px,3.5vw,43px);font-weight:780;letter-spacing:-1.2px;line-height:1.1;margin:0 0 9px}
+.detail-heading .rating{font-size:15px;color:#36d5ef}
+.detail-heading .rating span{font-size:12px;color:#c0d6e7}
+.detail-meta{font-size:14px;color:#c2d6e5;line-height:1.6;margin:7px 0 18px}
+.detail-actions{display:flex;align-items:center;gap:12px;margin:18px 0 25px}
+.detail-actions .primary{flex:1;max-width:490px;min-width:230px;min-height:55px;padding:14px 22px;border-radius:13px;font-size:14px}
+.detail-actions .square-button{width:56px;height:55px;border-radius:13px;background:#102d40;border-color:#66839a50;flex:0 0 auto}
+.detail-actions .square-button:hover{background:#17425a;border-color:#00c9ed79}
+.detail-information{min-width:0;margin-top:4px}
+.detail-tabs{gap:7px;overflow-x:auto;scrollbar-width:none;margin:0 0 18px;padding:4px;border:1px solid #7697ad24;border-radius:14px;background:#061b29}
+.detail-tabs::-webkit-scrollbar{display:none}
+.detail-tabs button{flex:0 0 auto;padding:10px 16px;border:0;border-radius:10px;color:#b5cad9;font-size:12px;transition:background .16s,color .16s}
+.detail-tabs button.active{border-bottom-color:transparent;background:#0b3b50;color:#8cecff;font-weight:700;box-shadow:inset 0 0 0 1px #00c9ed35}
+.detail-content{min-width:0}
+.detail-content>.section-head{margin-top:23px}
+.detail-content>.section-head h2{font-size:20px}
+.detail-content .description{max-width:980px;color:#c6dbe9;font-size:14px;line-height:1.85;margin:0 0 23px}
+.detail-content .cast-rail{gap:14px;padding:2px 0 8px;margin:0 0 16px}
+.detail-content .cast-person{width:116px}
+.detail-content .cast-person img{width:82px;height:82px;border:1px solid #8ab1c735}
+.detail-content .cast-person strong{font-size:11px}
+.detail-content .cast-person small{font-size:10px}
+.detail-content .info-grid{max-width:850px;margin-top:22px;padding-top:17px}
+@media(max-width:900px){.explore-page .search-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+  .explore-page{max-width:none}
+  .explore-page .page-head{padding:15px 0 18px}
+  .explore-page .page-head h1{font-size:25px}
+  .explore-page .search-form{gap:7px}
+  .explore-page .search-box{min-height:49px;padding:10px 11px;gap:9px;border-radius:12px}
+  .explore-page .search-box input{font-size:12px}
+  .explore-page .search-form>.plain-icon{width:43px;height:43px;border-radius:11px}
+  .explore-page .search-form>.plain-icon .icon{width:19px;height:19px}
+  .explore-page .explore-type-pills{gap:7px;margin-top:11px}
+  .explore-page .explore-type-pills button{min-height:35px;padding:7px 13px;font-size:11px}
+  .explore-page .filter-count{font-size:9px;margin-top:4px}
+  .explore-page #exploreDefault>section:first-child .section-head{margin-top:18px}
+  .explore-page .section-head{margin-top:25px}
+  .explore-page .section-head h2{font-size:17px}
+  .explore-page .search-category-grid{gap:10px}
+  .explore-page .category-shortcut{min-height:86px;padding:13px 11px;gap:9px;border-radius:13px}
+  .explore-page .category-shortcut>.icon:first-child{width:26px;height:26px}
+  .explore-page .category-shortcut>.icon:last-child{width:13px;height:13px}
+  .explore-page .category-copy strong{font-size:12px}
+  .explore-page .category-copy small{font-size:9px}
+  #todayTrends .rail{gap:10px;margin-right:-17px;padding-right:17px}
+  #todayTrends .rail>.card{width:calc((100vw - 61px)/3);min-width:108px;max-width:145px}
+  #todayTrends .poster-box{border-radius:10px}
+  #todayTrends .card h3{font-size:10px;min-height:2.7em}
+  #todayTrends .card .subtitle{font-size:9px;gap:5px}
+  #todayTrends .card .subtitle time{font-size:9px}
+  #todayTrends .card .subtitle .card-rating{font-size:9px}
+  .detail-page{margin-bottom:22px}
+  .detail-visual{height:clamp(235px,57vw,360px);margin:0;border-radius:13px}
+  .detail-page.has-detail-poster .detail-poster-frame{left:15px;bottom:0;width:clamp(100px,25vw,160px);border-width:2px;border-radius:10px}
+  .detail-page.has-detail-poster .detail-heading{margin:20px 0 18px}
+  .detail-page:not(.has-detail-poster) .detail-heading{margin:18px 0}
+  .detail-heading h1{font-size:clamp(27px,7vw,36px);letter-spacing:-.8px;margin-bottom:7px}
+  .detail-heading .rating{font-size:13px}
+  .detail-heading .rating span{font-size:10px}
+  .detail-meta{font-size:11px;line-height:1.65;margin:5px 0 15px}
+  .detail-actions{gap:9px;margin:14px 0 20px}
+  .detail-actions .primary{flex:1;max-width:none;min-width:0;min-height:50px;padding:12px 9px;border-radius:11px;font-size:12px}
+  .detail-actions .square-button{width:48px;height:50px;border-radius:11px}
+  .detail-tabs{gap:3px;margin-bottom:15px;padding:3px;border-radius:12px}
+  .detail-tabs button{padding:9px 10px;font-size:11px}
+  .detail-content>.section-head{margin-top:16px}
+  .detail-content>.section-head h2{font-size:17px}
+  .detail-content .description{font-size:12px;line-height:1.8;margin-bottom:15px}
+  .detail-content .cast-rail{gap:9px;margin-right:-17px;padding-right:17px}
+  .detail-content .cast-person{width:calc((100vw - 61px)/4);min-width:71px;max-width:106px}
+  .detail-content .cast-person img{width:clamp(56px,16vw,72px);height:clamp(56px,16vw,72px)}
+  .detail-content .cast-person strong{font-size:10px;margin-top:4px}
+  .detail-content .cast-person small{font-size:9px;margin-top:2px}
+  .detail-content .info-grid{margin-top:18px;padding-top:15px;gap:12px;font-size:11px}
+}

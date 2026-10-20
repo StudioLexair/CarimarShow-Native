@@ -59,7 +59,7 @@ fs.mkdirSync(shots, { recursive: true });
   }
   await page.goto(BASE + "/app/#profile");
   await page.locator(".profile-hero").waitFor();
-  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.5/);
+  assert.match(await page.locator(".profile-note").innerText(), /2\.2\.6/);
   assert.equal(await page.locator(".profile-stats strong").count(), 3);
   assert.equal(await page.locator("#checkUpdate").count(), 1);
   await page.screenshot({ path: shots + "/perfil.png", fullPage: true });
@@ -357,7 +357,7 @@ fs.mkdirSync(shots, { recursive: true });
     await p.locator(".profile-head h2").innerText(),
     "Perfil conservado",
   );
-  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.5/);
+  assert.match(await p.locator(".profile-note").innerText(), /2\.2\.6/);
   await p.evaluate(async () => await navigator.serviceWorker.ready);
   const shellState = await p.evaluate(async () => {
     const names = (await caches.keys()).filter((key) => key.startsWith("carimarshow-shell-")),
@@ -370,7 +370,7 @@ fs.mkdirSync(shots, { recursive: true });
 
     };
   });
-  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.5-filmography1"], "The updated service worker must replace the prior offline shell");
+  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.6-detail-explore2"], "The updated service worker must replace the prior offline shell");
   assert.equal(shellState.index, true, "The revisioned shell must retain the offline entry page");
   assert.equal(shellState.app, true, "The revisioned shell must retain the app script");
   assert.equal(shellState.lightbox, true, "The revisioned shell must retain the accessible image viewer module");
