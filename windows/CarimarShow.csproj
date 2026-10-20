@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
- <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>CarimarShow</AssemblyName><ApplicationIcon>app.ico</ApplicationIcon><Version>2.2.4</Version></PropertyGroup>
+ <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>CarimarShow</AssemblyName><ApplicationIcon>app.ico</ApplicationIcon><Version>2.2.5</Version></PropertyGroup>
  <ItemGroup><Resource Include="app.ico" /><Resource Include="app.png" /></ItemGroup>
  <ItemGroup><PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40"/></ItemGroup>
  <ItemGroup><Content Include="..\public\**\*"><Link>web\%(RecursiveDir)%(Filename)%(Extension)</Link><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory><CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory></Content></ItemGroup>

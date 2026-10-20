@@ -465,6 +465,10 @@ test("native retirado: proxy y allowlists nativas usan únicamente el dominio co
 
 test("landing Android: el botón usa la descarga del dominio propio en la pestaña actual", () => {
   const html = fs.readFileSync("public/index.html", "utf8");
+  assert.ok(html.includes("Versión actual: 2.2.5"));
+  assert.ok(html.includes("Versión 2.2.5 · Android"));
+  assert.ok(html.includes("Versión 2.2.5 · Windows"));
+  assert.ok(html.includes("/releases/latest/download/CarimarShow-Windows-x64-Setup.exe"));
   const buttonIndex = html.indexOf("Descargar APK");
   assert.ok(buttonIndex >= 0, "Debe existir el enlace Descargar APK");
   const start = html.lastIndexOf("<a ", buttonIndex);
@@ -486,7 +490,7 @@ test("descarga Android: el dominio propio resuelve el asset firmado y salta la p
         ok: false,
         headers: {
           get: () =>
-            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.4/CarimarShow-Android.apk",
+            "/StudioLexair/CarimarShow-Native/releases/download/v2.2.5/CarimarShow-Android.apk",
         },
       };
     if (calls.length === 2)
@@ -541,27 +545,31 @@ test("descarga Android: rechaza métodos y redirecciones fuera de GitHub", async
   assert.equal(calls, 1);
 });
 
-test("candidato 2.2.4: versiones de Android, Windows y web están alineadas", () => {
-  assert.equal(JSON.parse(fs.readFileSync("package.json", "utf8")).version, "2.2.4");
+test("candidato 2.2.5: versiones de Android, Windows y web están alineadas", () => {
+  const version = JSON.parse(fs.readFileSync("package.json", "utf8")).version;
+  assert.equal(version, "2.2.5");
   for (const [file, marker] of [
-    ["public/app/config.js", "version:'2.2.4'"],
-    ["android/app/build.gradle.kts", 'versionName = "2.2.4"'],
-    ["windows/CarimarShow.csproj", "<Version>2.2.4</Version>"],
-    ["windows/installer.iss", '#define MyAppVersion "2.2.4"'],
+    ["public/app/config.js", "version:'" + version + "'"],
+    ["android/app/build.gradle.kts", 'versionName = "' + version + '"'],
+    ["windows/CarimarShow.csproj", "<Version>" + version + "</Version>"],
+    ["windows/installer.iss", '#define MyAppVersion "' + version + '"'],
   ])
     assert.ok(fs.readFileSync(file, "utf8").includes(marker), file);
+  assert.ok(fs.readFileSync("public/app/index.html", "utf8").includes('data-app-version="' + version + '"'));
+  assert.ok(fs.readFileSync("public/app/startup.mjs", "utf8").includes('|| "' + version + '"'));
 });
 
-test("PWA: la revisión del shell cambia sin fingir una nueva versión pública", () => {
+test("PWA: el shell acompaña la versión pública y startup conserva revisiones por sufijo", () => {
   const version = JSON.parse(fs.readFileSync("package.json", "utf8")).version,
     worker = fs.readFileSync("public/app/sw.js", "utf8"),
     shell = worker.match(/const SHELL = "([^"]+)"/)?.[1];
   assert.ok(shell, "Debe existir un nombre de caché para la aplicación web");
-  assert.notEqual(shell, `carimarshow-shell-v${version}`, "Una corrección debe invalidar el shell instalado sin subir el número de versión pública");
+  assert.equal(shell, "carimarshow-shell-v" + version);
   const startup = fs.readFileSync("public/app/startup.mjs", "utf8");
   assert.ok(startup.includes('name !== shellVersion'));
   assert.ok(startup.includes('!name.startsWith(shellVersion + "-")'), "Startup must preserve suffix revisions of the current shell");
 });
+
 test("imágenes TMDB: la carga directa evita placeholders cuando falla el cache CORS", () => {
   const source = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8");
   assert.ok(source.includes("https://image.tmdb.org/t/p/${size}${p}"));
