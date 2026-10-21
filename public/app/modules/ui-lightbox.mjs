@@ -1,4 +1,5 @@
 import { icon } from "./ui-icons.mjs";
+import { cachedImage, fetchAndCacheImage, urls } from "./ui-images.mjs";
 
 let routeCloseBound = false;
 
@@ -23,10 +24,7 @@ function openImageViewer(trigger) {
   if (!fullSize) return;
 
   const thumbnail = trigger.querySelector("img"),
-    fallback =
-      thumbnail?.dataset.image && thumbnail.dataset.placeholderShown !== "1"
-        ? thumbnail.currentSrc || thumbnail.src
-        : "",
+    imageKey = thumbnail?.dataset.image || "",
     label =
       trigger.dataset.imageZoomAlt ||
       thumbnail?.alt ||
@@ -40,18 +38,74 @@ function openImageViewer(trigger) {
     caption = dialog.querySelector(".image-viewer-caption"),
     close = dialog.querySelector(".image-viewer-close");
   image.alt = label;
+  image.dataset.originalSrc = fullSize;
   caption.textContent = label;
   let triedFallback = false;
-  image.addEventListener("error", () => {
-    if (!triedFallback && fallback && image.src !== fallback) {
-      triedFallback = true;
-      dialog.classList.add("image-viewer--cached-fallback");
-      image.src = fallback;
-      caption.textContent = `${label} · versión guardada`;
-      return;
+
+  async function cachedFallback() {
+    if (triedFallback || !dialog.isConnected) return false;
+    triedFallback = true;
+    const thumbnailSrc = thumbnail?.currentSrc || thumbnail?.src || "";
+    let fallback = null;
+
+    if (
+      thumbnail?.dataset.bundled === "1" &&
+      thumbnail.dataset.placeholderShown !== "1" &&
+      thumbnailSrc
+    )
+      fallback = { src: thumbnailSrc, label: "versión incluida" };
+
+    if (!fallback && imageKey) {
+      try {
+        const cached = await cachedImage(imageKey);
+        if (cached) {
+          const src = URL.createObjectURL(cached.blob);
+          urls.add(src);
+          fallback = { src, label: "versión guardada" };
+        }
+      } catch {}
     }
+
+    if (
+      !fallback &&
+      thumbnailSrc.startsWith("blob:") &&
+      thumbnail?.dataset.placeholderShown !== "1"
+    )
+      fallback = { src: thumbnailSrc, label: "versión guardada" };
+
+    if (
+      !fallback &&
+      thumbnail?.dataset.placeholderShown !== "1" &&
+      thumbnail?.complete &&
+      thumbnail.naturalWidth > 0 &&
+      thumbnailSrc
+    )
+      fallback = { src: thumbnailSrc, label: "vista previa" };
+
+    if (!fallback && imageKey && globalThis.navigator?.onLine) {
+      const fetched = await fetchAndCacheImage(imageKey);
+      if (fetched && dialog.isConnected) {
+        const src = URL.createObjectURL(fetched.blob);
+        urls.add(src);
+        fallback = {
+          src,
+          label: fetched.store ? "versión guardada" : "vista previa",
+        };
+      }
+    }
+
+    if (!fallback || !dialog.isConnected) return false;
+    dialog.classList.add("image-viewer--cached-fallback");
+    image.src = fallback.src;
+    caption.textContent = `${label} · ${fallback.label}`;
+    return true;
+  }
+
+  image.addEventListener("error", async () => {
+    if (await cachedFallback()) return;
     image.removeAttribute("src");
-    caption.textContent = "No se pudo cargar la imagen. Comprueba la conexión e inténtalo de nuevo.";
+    caption.textContent =
+      "No se pudo cargar la imagen. Comprueba la conexión e inténtalo de nuevo.";
   });
 
   const restoreFocus = () => {

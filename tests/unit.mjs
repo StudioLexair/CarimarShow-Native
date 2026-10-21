@@ -603,10 +603,24 @@ test("imágenes TMDB: la presentación directa conserva fallback y el cache usa 
     downloads = fs.readFileSync("public/app/modules/services-downloads.mjs", "utf8");
   assert.ok(source.includes("https://image.tmdb.org/t/p/${size}${p}"));
   assert.ok(source.includes('i.addEventListener("error", fallback, { once: true })'));
-  assert.ok(source.includes("imageProxyUrl(k)"));
+  assert.ok(source.includes("imageProxyUrl(key)"));
   assert.ok(downloads.includes("imageProxyUrl(ik)"));
   assert.ok(!source.includes('fetch("https://image.tmdb.org/t/p/" + k'));
   assert.ok(!downloads.includes('fetch("https://image.tmdb.org/t/p/" + ik'));
+});
+
+test("offline detalle: el póster usa la imagen incluida y el visor consulta las copias locales", () => {
+  const detailSource = fs.readFileSync("public/app/modules/views-detail.mjs", "utf8"),
+    posterMarkup = detailSource.split("posterMarkup = d.poster_path")[1]?.split(': "";')[0] || "",
+    imageSource = fs.readFileSync("public/app/modules/ui-images.mjs", "utf8"),
+    viewerSource = fs.readFileSync("public/app/modules/ui-lightbox.mjs", "utf8"),
+    snapshot = JSON.parse(fs.readFileSync("public/app/catalog-snapshot.json", "utf8")),
+    hope = snapshot.details?.["movie/1058424"];
+  assert.ok(posterMarkup.includes('"w342"'), "Detail poster must match the bundled and explicitly downloaded poster size");
+  assert.ok(hope?.poster_path && snapshot.images?.["w342" + hope.poster_path], "Hope must have a bundled w342 poster for offline use");
+  assert.ok(imageSource.includes("delete img.dataset.placeholderShown"), "A successful cached blob clears the old CDN error marker");
+  assert.ok(viewerSource.includes("cachedImage(imageKey)"), "The zoom viewer must read stored images when original-size CDN fails");
+  assert.ok(viewerSource.includes("fetchAndCacheImage(imageKey)"), "The zoom viewer may use the same-origin image proxy when online");
 });
 
 test("proxy de imágenes: URL con tamaños y rutas TMDB permitidas, sin traversal", () => {

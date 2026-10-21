@@ -21,7 +21,7 @@ fs.mkdirSync(shots, { recursive: true });
     const viewer = page.locator("dialog.image-viewer");
     await viewer.waitFor({ state: "visible" });
     assert.equal(await viewer.locator(".image-viewer-close").isVisible(), true);
-    assert.match(await viewer.locator(".image-viewer-image").getAttribute("src"), /\/original\//);
+    assert.match(await viewer.locator(".image-viewer-image").getAttribute("data-original-src"), /\/original\//);
     if (closeWithEscape) await page.keyboard.press("Escape");
     else await viewer.locator(".image-viewer-close").click();
     await viewer.waitFor({ state: "detached" });
@@ -370,7 +370,7 @@ fs.mkdirSync(shots, { recursive: true });
 
     };
   });
-  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.7-offline-images1"], "The updated service worker must replace the prior offline shell");
+  assert.deepEqual(shellState.names, ["carimarshow-shell-v2.2.7-offline-images2"], "The updated service worker must replace the prior offline shell");
   assert.equal(shellState.index, true, "The revisioned shell must retain the offline entry page");
   assert.equal(shellState.app, true, "The revisioned shell must retain the app script");
   assert.equal(shellState.lightbox, true, "The revisioned shell must retain the accessible image viewer module");

@@ -77,7 +77,7 @@ export async function detail(type, id, rev, initialTab = "description") {
       ? zoomableImage(
           "detail-poster-frame",
           d.poster_path,
-          "w500",
+          "w342",
           `Póster de ${title(d)}`,
           `Póster de ${title(d)}`,
         )
