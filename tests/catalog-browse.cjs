@@ -200,7 +200,9 @@ function apiResult(path, params) {
   await page.goto(`${BASE}/app/#browse/movie`);
   await page.locator("#catalogFilters").waitFor();
   await page.locator("#browseCards .card").first().waitFor();
-  await page.locator('#catalogGenre option[value="28"]').waitFor();
+  await page
+    .locator('#catalogGenre option[value="28"]')
+    .waitFor({ state: "attached" });
   assert.equal(await page.locator("#catalogFilters select").count(), 4);
   assert.equal(await page.locator("#catalogGenre option").filter({ hasText: "Acción" }).count(), 1);
 
