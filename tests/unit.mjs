@@ -217,6 +217,13 @@ test("proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansió
     { path: "search/movie", query: "" },
     { path: "movie/0" },
     { path: "discover/tv", with_genres: "1,x" },
+    { path: "discover/movie", sort_by: "DROP TABLE" },
+    { path: "movie/popular", sort_by: "vote_average.desc" },
+    { path: "discover/movie", primary_release_year: "2101" },
+    { path: "discover/movie", first_air_date_year: "2025" },
+    { path: "discover/tv", "vote_average.gte": "10.1" },
+    { path: "discover/movie", "vote_count.gte": "-1" },
+    { path: "trending/person/today" },
   ])
     assert.throws(() => validateQuery(q));
   for (const path of [
@@ -225,6 +232,7 @@ test("proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansió
     "person/3/combined_credits",
     "search/person",
     "trending/all/day",
+    "trending/person/week",
     "discover/movie",
     "genre/tv/list",
   ])
@@ -235,6 +243,25 @@ test("proxy: allowlist y parámetros estrictos bloquean SSRF, tokens y expansió
       }).path,
       path,
     );
+  const movieFilters = validateQuery({
+      path: "discover/movie",
+      sort_by: "vote_average.desc",
+      primary_release_year: "2024",
+      "vote_average.gte": "7",
+      "vote_count.gte": "100",
+      with_genres: "28",
+    }).params,
+    tvFilters = validateQuery({
+      path: "discover/tv",
+      sort_by: "first_air_date.desc",
+      first_air_date_year: "2025",
+    }).params;
+  assert.equal(movieFilters.get("sort_by"), "vote_average.desc");
+  assert.equal(movieFilters.get("primary_release_year"), "2024");
+  assert.equal(movieFilters.get("vote_average.gte"), "7");
+  assert.equal(movieFilters.get("vote_count.gte"), "100");
+  assert.equal(movieFilters.get("with_genres"), "28");
+  assert.equal(tvFilters.get("first_air_date_year"), "2025");
   assert.equal(
     validateQuery({ path: "search/movie", query: " á & b " }).params.get(
       "query",
@@ -443,7 +470,6 @@ test("géneros: resultados mixtos intercalados conservan tipo aunque compartan I
     [1, 1, 2],
   );
 });
-
 
 test("proxy: dominio corto y nativas permitidos, origen ajeno rechazado", async () => {
   const handler = require("../api/tmdb.js");

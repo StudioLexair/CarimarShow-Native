@@ -33,6 +33,7 @@ jobs:
           node tests/improvements.cjs
           node tests/polish.cjs
           node tests/profile-genres.cjs
+          node tests/catalog-browse.cjs
           node tests/client-feedback.cjs
           node tests/downloads.cjs
   android-insets:

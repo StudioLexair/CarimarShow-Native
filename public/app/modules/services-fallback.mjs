@@ -62,28 +62,50 @@ export function seedFallback(path, params) {
       total_pages: 1,
     };
   }
-  if (path === "person/popular")
+  if (path === "person/popular" || path.startsWith("trending/person/"))
     return {
       results: Object.values(state.seed.people)
-        .filter((p) => p.name && p.id)
-        .map((p) => ({ ...p, media_type: "person" })),
+        .filter((person) => person.name && person.id)
+        .map((person) => ({ ...person, media_type: "person" })),
       total_pages: 1,
     };
   if (/^discover\//.test(path)) {
     if (!state.seed.catalog.length) return null;
     const type = path.split("/")[1],
-      wanted = Number(params.with_genres);
-    return {
-      results: state.seed.catalog.filter(
-        (m) =>
-          kind(m) === type &&
-          ((m.genre_ids || []).includes(wanted) ||
-            (state.seed.details[`${type}/${m.id}`]?.genres || []).some(
-              (g) => g.id === wanted,
-            )),
-      ),
-      total_pages: 1,
-    };
+      wanted = params.with_genres
+        ? new Set(params.with_genres.split(",").map(Number))
+        : null,
+      yearKey = type === "tv" ? "first_air_date_year" : "primary_release_year",
+      year = Number(params[yearKey] || 0),
+      minimumRating = Number(params["vote_average.gte"] || 0),
+      results = state.seed.catalog.filter((item) => {
+        if (kind(item) !== type) return false;
+        const genreIds = new Set([
+          ...(item.genre_ids || []).map(Number),
+          ...(state.seed.details[`${type}/${item.id}`]?.genres || []).map(
+            (genre) => Number(genre.id),
+          ),
+        ]);
+        if (wanted && ![...wanted].some((id) => genreIds.has(id))) return false;
+        if (year) {
+          const date = type === "tv" ? item.first_air_date : item.release_date;
+          if (Number(String(date || "").slice(0, 4)) !== year) return false;
+        }
+        if (minimumRating && Number(item.vote_average || 0) < minimumRating)
+          return false;
+        return true;
+      });
+    const sort = params.sort_by || "popularity.desc";
+    results.sort((a, b) => {
+      if (sort === "vote_average.desc")
+        return Number(b.vote_average || 0) - Number(a.vote_average || 0);
+      if (sort === "primary_release_date.desc" || sort === "first_air_date.desc") {
+        const date = type === "tv" ? "first_air_date" : "release_date";
+        return String(b[date] || "").localeCompare(String(a[date] || ""));
+      }
+      return Number(b.popularity || 0) - Number(a.popularity || 0);
+    });
+    return { results, total_pages: 1 };
   }
   if (/\/(similar|recommendations)$/.test(path)) return null;
   if (state.seed.responses?.[path] && Number(params.page || 1) === 1)

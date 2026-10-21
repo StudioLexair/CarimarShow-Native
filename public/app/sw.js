@@ -7,6 +7,7 @@ const CORE = [
   "styles.css",
   "settings.css",
   "personal.css",
+  "catalog.css",
   "startup.mjs",
   "app.js",
   "config.js",

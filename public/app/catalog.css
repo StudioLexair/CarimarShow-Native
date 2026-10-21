@@ -1,0 +1,244 @@
+/* Catálogo: filtros visibles para películas, series y personas. */
+.catalog-browser {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.catalog-browser > .page-head {
+  padding-bottom: 15px;
+}
+.catalog-filter-panel,
+.people-filter-panel {
+  display: grid;
+  align-items: end;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #25465b;
+  border-radius: 14px;
+  background: linear-gradient(115deg, #0b2638, #0a2030);
+  box-shadow: 0 10px 28px #0002;
+}
+.catalog-filter-panel {
+  grid-template-columns: minmax(145px, 1.25fr) repeat(3, minmax(132px, 1fr)) auto;
+}
+.people-filter-panel {
+  grid-template-columns: minmax(220px, 1.5fr) repeat(2, minmax(175px, 0.9fr));
+}
+.catalog-filter-control,
+.people-search-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.catalog-filter-control > span {
+  color: #a7c0d0;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+}
+.catalog-filter-control select,
+.people-search-control input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid #577a90a1;
+  border-radius: 9px;
+  padding: 9px 11px;
+  color: #eaf6ff;
+  background: #071c2b;
+  font-size: 12px;
+}
+.catalog-filter-control select:hover,
+.people-search-control input:hover {
+  border-color: #00c9ed;
+}
+.catalog-filter-reset {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #52768d61;
+  border-radius: 9px;
+  color: #b8cfde;
+  background: #102c3e;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.catalog-filter-reset:hover {
+  color: #effaff;
+  border-color: #00c9ed;
+  background: #12384d;
+}
+.catalog-summary {
+  min-height: 18px;
+  margin: 11px 0 12px;
+  color: #8faabd;
+  font-size: 11px;
+}
+.people-search-control {
+  position: relative;
+  justify-content: flex-end;
+}
+.people-search-control > .icon {
+  position: absolute;
+  z-index: 1;
+  left: 12px;
+  bottom: 11px;
+  width: 18px;
+  height: 18px;
+  color: #8fb2c4;
+  pointer-events: none;
+}
+.people-search-control input {
+  padding-left: 39px;
+  min-height: 45px;
+  font-size: 13px;
+}
+.people-search-control input::placeholder {
+  color: #9cb5c6;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.people-browser .grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 22px 16px;
+}
+.people-browser .person-card .poster-box {
+  aspect-ratio: 1 / 1.12;
+  border-radius: 11px;
+}
+.people-browser .person-card strong {
+  font-size: 13px;
+}
+.people-browser .person-card small {
+  font-size: 11px;
+}
+
+/* Las dos capas permiten cambiar arte sin repintar la tarjeta ni dejarla vacía. */
+.genres-page .genre-tile {
+  isolation: isolate;
+  background: #0b2638;
+}
+.genres-page .genre-tile-art {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(140deg, #183e53, #071d2b);
+}
+.genres-page .genre-tile .genre-tile-art .genre-tile-image {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 520ms ease;
+  background: #0b2638;
+}
+.genres-page .genre-tile .genre-tile-art .genre-tile-image.is-active {
+  opacity: 1;
+}
+.genres-page .genre-tile:after {
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(0deg, #031421f2 0%, #04172680 42%, #04172608 100%);
+}
+.genres-page .genre-tile-copy,
+.genres-page .genre-tile-arrow {
+  z-index: 2;
+}
+.genres-page .genre-tile {
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+.genres-page .genre-tile:hover {
+  border-color: #00c9ed88;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1050px) {
+  .catalog-filter-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .catalog-filter-reset {
+    align-self: end;
+  }
+  .people-browser .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .catalog-browser > .page-head {
+    padding: 17px 0 15px;
+  }
+  .catalog-filter-panel,
+  .people-filter-panel {
+    gap: 9px;
+    padding: 11px;
+    border-radius: 12px;
+  }
+  .catalog-filter-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .catalog-filter-control > span {
+    font-size: 9px;
+  }
+  .catalog-filter-control select,
+  .catalog-filter-reset {
+    min-height: 40px;
+    font-size: 11px;
+  }
+  .catalog-filter-reset {
+    grid-column: 1 / -1;
+  }
+  .people-filter-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .people-search-control {
+    grid-column: 1 / -1;
+  }
+  .people-browser .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 11px;
+  }
+  .people-browser .person-card .poster-box {
+    border-radius: 9px;
+  }
+  .people-browser .person-card strong {
+    font-size: 11px;
+  }
+  .people-browser .person-card small {
+    font-size: 9px;
+  }
+  .catalog-summary {
+    font-size: 10px;
+  }
+}
+@media (max-width: 360px) {
+  .catalog-filter-panel,
+  .people-filter-panel {
+    grid-template-columns: 1fr;
+  }
+  .catalog-filter-reset,
+  .people-search-control {
+    grid-column: auto;
+  }
+  .people-browser .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .genres-page .genre-tile,
+  .genres-page .genre-tile .genre-tile-art .genre-tile-image {
+    transition: none;
+  }
+}
