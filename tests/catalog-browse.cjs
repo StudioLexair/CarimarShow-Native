@@ -211,7 +211,9 @@ function apiResult(path, params) {
   await selectAndWait("#catalogRating", "7", "discover/movie", "vote_average.gte", "7");
   const ratedRequest = await selectAndWait("#catalogSort", "rating", "discover/movie", "sort_by", "vote_average.desc");
   assert.equal(new URL(ratedRequest.url()).searchParams.get("vote_count.gte"), "50");
-  assert.match(await page.locator("#catalogSummary").innerText(), /películas/);
+  await page.waitForFunction(() =>
+    /películas/.test(document.querySelector("#catalogSummary")?.textContent || ""),
+  );
   await selectAndWait("#catalogSort", "trending", "trending/movie/week", "page", "1");
   const resetRequest = waitForApi("discover/movie", "sort_by", "popularity.desc");
   await page.locator("#clearCatalogFilters").click();
@@ -227,6 +229,9 @@ function apiResult(path, params) {
   await page.locator("#peopleFilters").waitFor();
   await page.locator("#browseCards .person-card").first().waitFor();
   await page.selectOption("#peopleRole", "Directing");
+  await page.waitForFunction(
+    () => document.querySelectorAll(".person-card").length === 1,
+  );
   await page.locator('.person-card:has-text("Ari Directora")').waitFor();
   assert.equal(await page.locator(".person-card").count(), 1);
   const searchRequest = waitForApi("search/person", "query", "Ari");
